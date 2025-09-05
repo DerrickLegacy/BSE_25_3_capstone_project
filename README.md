@@ -180,3 +180,40 @@ The main function in this file doing the query is
         .then(parseJSON);
       }
 ```
+
+---
+
+## Project Structure
+
+BSE_25_3_capstone_project/
+├── client/ # React frontend
+│ ├── package.json
+│ ├── package-lock.json
+│ ├── public/ # Static assets
+│ └── src/ # React source code
+├── package.json # Node.js backend dependencies
+├── package-lock.json
+├── README.md # Project documentation
+├── sample.sql # Sample database
+├── server.js # Node/Express backend
+└── start-client.js # Script to start client
+
+
+ ##  Tech Stack
+
+Frontend: React, React Router, Redux, Redux-Saga, Reactstrap
+Backend: Node.js, Express.js
+Database: MySQL
+State Management: Redux
+Build Tools: npm
+Version Control: Git & GitHub
+ask Management & Collaboration: ClickUp
+
+
+##  Features
+Create and manage a MySQL database (books) with an authors table.
+Insert, query, update, and delete authors (CRUD operations).
+Query authors by first name using the backend API.
+Connect frontend (React) to backend (Express) via REST API.
+Display a list of authors in the React frontend.
+Sample data included (Shakespeare, Poe, Dostoyevsky, Garcia Marquez) for quick testing.

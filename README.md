@@ -180,3 +180,65 @@ The main function in this file doing the query is
         .then(parseJSON);
       }
 ```
+---
+
+## Project Structure
+
+BSE_25_3_capstone_project/
+├── client/                      # React frontend
+│   ├── package.json
+│   ├── package-lock.json
+│   ├── public/                  # Static assets
+│   │   ├── favicon.ico
+│   │   └── index.html
+│   └── src/                     # React source code
+│       ├── Actions.js
+│       ├── App.js
+│       ├── Client.js
+│       ├── components/
+│       │   ├── HeaderNavigation.js
+│       │   ├── logo.png
+│       │   └── Search.js
+│       ├── index.css
+│       ├── index.js
+│       ├── Reducers.js
+│       └── Sagas.js
+├── package.json                 # Node.js backend dependencies
+├── package-lock.json
+├── README.md                    # Project documentation
+├── sample.sql                   # Sample database
+├── server.js                    # Node/Express backend
+└── start-client.js              # Script to start client
+
+
+## Tech Stack
+
+Frontend: React, Redux, Redux-Saga, ReactRouter, Reactstrap
+
+Backend: Node.js, Express
+
+Database: MySQL
+
+State Management: Redux
+
+Build Tools: npm
+
+Version Control: Git & GitHub
+
+Task Management & Collaboration: ClickUp
+
+## Features
+
+Create and manage a MySQL database (books) with an authors table
+
+Insert, query, update, and delete authors (CRUD operations)
+
+Query authors by first name using the backend API
+
+Connect frontend (React) to backend (Express) via REST API
+
+Display a list of authors in the React frontend
+
+Sample data included (Shakespeare, Poe, Dostoyevsky, Garcia Marquez) for quick testing
+
+Full development workflow ready for production build (npm run build)

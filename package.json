@@ -22,7 +22,8 @@
   "scripts": {
     "start": "concurrently \"npm run server\" \"npm run client\"",
     "server": "node server.js",
-    "client": "node start-client.js"
+    "client": "node start-client.js",
+    "test": "echo \"No tests defined\" && exit 0"
   },
   "devDependencies": {
     "concurrently": "^9.2.1"

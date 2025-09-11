@@ -1,108 +1,121 @@
-import React, { Component } from 'react';
-import ReactDOM from 'react-dom';
-import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
-import { Form, FormGroup, Input, Button } from 'reactstrap';
-import { connect } from 'react-redux';
-import { Container, Row } from 'reactstrap';
+// src/components/Search.js
+import React, { useState } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { Container, Row, Form, FormGroup, Input, Button, Col } from 'reactstrap';
+import {
+  createColumnHelper,
+  flexRender,
+  getCoreRowModel,
+  useReactTable
+} from '@tanstack/react-table';
 
-class Search extends Component {
-  onChange = e => {
-    if (e.target.value === '') {
-      this.props.fetchData({ firstName: '*' });
-    } else {
-      this.props.fetchData({ firstName: e.target.value });
-    }
+const Search = () => {
+  const dispatch = useDispatch();
+  const searchData = useSelector(state => state.searchData || []);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  // Redux fetch handler
+  const fetchData = (term) => {
+    dispatch({ type: 'FETCH_SEARCH_DATA', payload: term });
   };
 
-  onClear = e => {
-    let searchInput = ReactDOM.findDOMNode(this.refs.searchInput);
-    searchInput ? (searchInput.value = '') : '';
-    this.props.fetchData({ firstName: '*' });
+  const handleChange = (e) => {
+    const value = e.target.value;
+    setSearchTerm(value);
+    fetchData({ firstName: value === '' ? '*' : value });
   };
 
-  onSubmit = e => {
-    e.preventDefault();
+  const handleClear = () => {
+    setSearchTerm('');
+    fetchData({ firstName: '*' });
   };
 
-  renderTitleAndForm() {
-    let titleAndForm = (
-      <Container>
-        <Row className="show-grid top10">
-          <h2> Filter Authors Database by First Name</h2>
-        </Row>
-        <Row className="show-grid top10">
-          <Form inline onSubmit={this.onSubmit}>
-            <FormGroup>
-              <Input
-                type="search"
-                name="search"
-                ref="searchInput"
-                id="searchInput"
-                placeholder="First Name"
-                onChange={this.onChange}
-              />
-            </FormGroup>
-            <Button className="btn-ll5" onClick={this.onClear}>
-              Clear
-            </Button>
+  const handleSubmit = (e) => e.preventDefault();
+
+  // TanStack React Table setup
+  const columnHelper = createColumnHelper();
+  const columns = [
+    columnHelper.accessor('first_name', { header: 'First Name' }),
+    columnHelper.accessor('last_name', { header: 'Last Name' })
+  ];
+
+  const table = useReactTable({
+    data: searchData,
+    columns,
+    getCoreRowModel: getCoreRowModel()
+  });
+
+  return (
+    <Container className="my-4">
+      {/* Title */}
+      <Row className="mb-3 top10">
+        <div className="">
+          <h2 className="jumbotron-heading">Authors Database</h2>
+        </div>
+        <Col className='jumbotron jumbotron-header rounded mb-4 p-4'>
+          <h2 className="text-primary">Filter Authors Database by First Name</h2>
+        </Col>
+      </Row>
+
+      {/* Search Form */}
+      <Row className="mb-4">
+        <Col md={6}>
+          <Form inline onSubmit={handleSubmit}>
+            <Row>
+              <Col><FormGroup className="me-2">
+                <Input
+                  type="search"
+                  placeholder="First Name"
+                  value={searchTerm}
+                  onChange={handleChange}
+                  className="form-control"
+                />
+              </FormGroup></Col>
+              <Col>
+                <Button className="btn-ll5" onClick={handleClear}>
+                  Clear
+                </Button></Col>
+            </Row>
           </Form>
+        </Col>
+      </Row>
+
+      {/* Data Table */}
+      {searchData.length > 0 && (
+        <Row>
+          <Col>
+            <div className="table-responsive shadow-sm rounded ">
+              <table className="table table-striped table-hover shadow-sm rounded">
+
+                <thead className="table-dark">
+                  {table.getHeaderGroups().map(headerGroup => (
+                    <tr key={headerGroup.id}>
+                      {headerGroup.headers.map(header => (
+                        <th key={header.id}>
+                          {flexRender(header.column.columnDef.header, header.getContext())}
+                        </th>
+                      ))}
+                    </tr>
+                  ))}
+                </thead>
+                <tbody>
+                  {table.getRowModel().rows.map(row => (
+                    <tr key={row.id}>
+                      {row.getVisibleCells().map(cell => (
+                        <td key={cell.id}>
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Col>
         </Row>
-      </Container>
-    );
+      )}
+    </Container>
+  );
+};
 
-    return titleAndForm;
-  }
-
-  renderFullForm() {
-    let fullForm = (
-      <Container>
-        <Row className="show-grid top10">
-          <h2> Filter Authors Database by First Name</h2>
-        </Row>
-        <Row className="show-grid top10">
-          <Form inline onSubmit={this.onSubmit}>
-            <FormGroup>
-              <Input type="search" name="search" id="searchInput" placeholder="First Name" onChange={this.onChange} />
-            </FormGroup>
-            <Button className="btn-ll5" onClick={this.onClear}>
-              Clear
-            </Button>
-          </Form>
-        </Row>
-        <Row className="show-grid top10">
-          <BootstrapTable data={this.props.searchData} search={false}>
-            <TableHeaderColumn dataField="first_name">First Name</TableHeaderColumn>
-            <TableHeaderColumn dataField="last_name" isKey={true}>
-              Last Name
-            </TableHeaderColumn>
-          </BootstrapTable>
-        </Row>
-      </Container>
-    );
-    return fullForm;
-  }
-
-  render() {
-    if (this.props.searchData.length !== 0) {
-      return this.renderFullForm();
-    } else {
-      return this.renderTitleAndForm();
-    }
-  }
-}
-
-function mapStatetoProps(state) {
-  return {
-    searchData: state.searchData
-  };
-}
-
-function mapDispatchToProps(dispatch) {
-  return {
-    fetchData: firstName => dispatch({ type: 'FETCH_SEARCH_DATA', payload: firstName })
-  };
-}
-
-const ConnectedSearch = connect(mapStatetoProps, mapDispatchToProps)(Search);
-
-export default ConnectedSearch;
+export default Search;

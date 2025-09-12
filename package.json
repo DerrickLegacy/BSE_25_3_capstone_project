@@ -4,8 +4,8 @@
   "private": true,
   "babel": {
     "presets": [
-      "es2015",
-      "stage-0"
+        "@babel/preset-env",
+    "@babel/preset-react"
     ]
   },
   "dependencies": {
@@ -22,7 +22,7 @@
     "start": "concurrently \"npm run server\" \"npm run client\"",
     "server": "node server.js",
     "client": "node start-client.js",
-    "test": "echo \"No tests defined\" && exit 0"
+    "test": "jest"
   },
   "devDependencies": {
     "@babel/core": "^7.28.4",
@@ -31,5 +31,8 @@
     "babel-jest": "^30.1.2",
     "concurrently": "^9.2.1",
     "jest": "^30.1.3"
+  },
+  "transform": {
+    "^.+\\.[tj]sx?$": "babel-jest"
   }
 }

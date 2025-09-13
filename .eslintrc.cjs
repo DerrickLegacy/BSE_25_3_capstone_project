@@ -5,16 +5,17 @@ module.exports = {
     es2021: true,
   },
   extends: [
-    "airbnb",
-    "airbnb/hooks",
-    "plugin:prettier/recommended", // Prettier integration
+    'airbnb',
+    'airbnb/hooks',
+    'plugin:prettier/recommended', // Prettier integration
   ],
   parserOptions: {
     ecmaVersion: 12,
-    sourceType: "module",
+    sourceType: 'module',
   },
   rules: {
-    "no-console": "warn",
-    "react/prop-types": "off",
+    'no-console': 'warn',
+    'react/prop-types': 'off',
+    'react/jsx-filename-extension': ['error', { extensions: ['.js', '.jsx'] }],
   },
 };

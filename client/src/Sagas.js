@@ -1,10 +1,10 @@
 import { call, put, takeEvery } from 'redux-saga/effects';
 import Client from './Client';
-import changeSearchData from './Actions';  // <- default import
+import changeSearchData from './Actions'; // <- default import
 
 function* fetchSearchData(action) {
   const searchData = yield call(Client.search, action.payload.firstName);
-  const result = yield put(changeSearchData(searchData));  // <- use directly
+  const result = yield put(changeSearchData(searchData)); // <- use directly
 
   // if it is from a redux-action, we get an object with error set not a thrown error
   if (result !== undefined) {

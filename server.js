@@ -1,7 +1,7 @@
 // Load environment variables from .env at the very top
 require('dotenv').config();
 
-console.log('Loaded DB:', process.env.DB_NAME);
+// console.log('Loaded DB:', process.env.DB_NAME);
 
 const express = require('express');
 const mysql = require('mysql2');
@@ -42,7 +42,7 @@ const pool = mysql.createPool({
 const COLUMNS = ['last_name', 'first_name'];
 
 // API endpoint to fetch books/authors
-app.get('/api/books', (req, res) => {
+app.get('/api/books', async (req, res) => {
   const { firstName } = req.query;
 
   if (!firstName) {
@@ -54,23 +54,28 @@ app.get('/api/books', (req, res) => {
       ? 'SELECT * FROM authors'
       : `SELECT * FROM authors WHERE first_name REGEXP '^${firstName}'`;
 
-  pool.query(queryString, (err, rows) => {
-    if (err) throw err;
+  try {
+    const [rows] = await pool.promise().query(queryString);
 
     if (rows.length > 0) {
       const result = rows.map((entry) => {
         const e = {};
-        COLUMNS.forEach((c) => (e[c] = entry[c]));
+        COLUMNS.forEach((c) => {
+          e[c] = entry[c];
+        });
         return e;
       });
-      res.json(result);
-    } else {
-      res.json([]);
+      return res.json(result);
     }
-  });
+
+    return res.json([]);
+  } catch (err) {
+    // console.error('Database error:', err);
+    return res.status(500).json({ error: `Database error: ${err.message}` });
+  }
 });
 
 // Start the server
 app.listen(app.get('port'), () => {
-  console.log(`Server running at: http://localhost:${app.get('port')}/`);
+  // console.log(`Server running at: http://localhost:${app.get('port')}/`);
 });

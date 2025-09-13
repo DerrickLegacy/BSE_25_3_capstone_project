@@ -6,7 +6,7 @@ import { Provider } from 'react-redux';
 import createSagaMiddleware from 'redux-saga';
 import App from './App';
 import mainReducer from './Reducers';
-import watchFetchSearchData from './Sagas.js';
+import watchFetchSearchData from './Sagas';
 
 import './index.css';
 import 'bootstrap/dist/css/bootstrap.css'; // keep this

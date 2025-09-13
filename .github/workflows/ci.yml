@@ -3,9 +3,9 @@ name: Node.js React CI
 # Trigger CI on push or pull request to main branch
 on:
   push:
-    branches: ["main"]
+    branches: ['main']
   pull_request:
-    branches: ["main"]
+    branches: ['main']
 
 jobs:
   build-and-test:

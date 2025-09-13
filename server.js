@@ -1,7 +1,7 @@
 // Load environment variables from .env at the very top
 require('dotenv').config();
-console.log("Loaded DB:", process.env.DB_NAME);
 
+console.log('Loaded DB:', process.env.DB_NAME);
 
 const express = require('express');
 const mysql = require('mysql2');
@@ -12,7 +12,10 @@ const app = express();
 // Middleware to handle CORS
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+  res.header(
+    'Access-Control-Allow-Headers',
+    'Origin, X-Requested-With, Content-Type, Accept'
+  );
   next();
 });
 
@@ -33,30 +36,31 @@ const pool = mysql.createPool({
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
-  port: process.env.DB_PORT || 3306
+  port: process.env.DB_PORT || 3306,
 });
 
 const COLUMNS = ['last_name', 'first_name'];
 
 // API endpoint to fetch books/authors
 app.get('/api/books', (req, res) => {
-  const firstName = req.query.firstName;
+  const { firstName } = req.query;
 
   if (!firstName) {
     return res.json({ error: 'Missing required parameters' });
   }
 
-  let queryString = firstName === '*'
-    ? `SELECT * FROM authors`
-    : `SELECT * FROM authors WHERE first_name REGEXP '^${firstName}'`;
+  const queryString =
+    firstName === '*'
+      ? 'SELECT * FROM authors'
+      : `SELECT * FROM authors WHERE first_name REGEXP '^${firstName}'`;
 
   pool.query(queryString, (err, rows) => {
     if (err) throw err;
 
     if (rows.length > 0) {
-      const result = rows.map(entry => {
+      const result = rows.map((entry) => {
         const e = {};
-        COLUMNS.forEach(c => e[c] = entry[c]);
+        COLUMNS.forEach((c) => (e[c] = entry[c]));
         return e;
       });
       res.json(result);

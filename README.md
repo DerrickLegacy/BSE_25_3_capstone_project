@@ -2,13 +2,13 @@
 
 This is a fully working React Web App with the following characteristics:
 
-* Based on [create-react-app](https://github.com/facebookincubator/create-react-app)
-* Node/Express backend
-* MySQL connection
-* [Redux](https://redux.js.org) pattern for handling application-state
-* [ReactRouter](https://github.com/ReactTraining/react-router) for handling routes
-* [Reactstrap](https://reactstrap.github.io) for UI
-* [Redux-Saga](https://github.com/redux-saga/redux-saga) for asynchronous tasks
+- Based on [create-react-app](https://github.com/facebookincubator/create-react-app)
+- Node/Express backend
+- MySQL connection
+- [Redux](https://redux.js.org) pattern for handling application-state
+- [ReactRouter](https://github.com/ReactTraining/react-router) for handling routes
+- [Reactstrap](https://reactstrap.github.io) for UI
+- [Redux-Saga](https://github.com/redux-saga/redux-saga) for asynchronous tasks
 
 ## Getting this App up and running
 
@@ -76,7 +76,7 @@ You can now point your browser to http://localhost:3000/!
 
 ### Set up the SERVER
 
-* MyWebApp/server.js
+- MyWebApp/server.js
 
 The file is an example of what it may look like for a server that:
 _ Serves at port 3001
@@ -84,17 +84,17 @@ _ Uses static index.html when in production mode
 _ Connects to a MySQL pool (pools allow handles reconnecting)
 _ Has a server-api that the client side can talk to
 
-* MyWebApp/package.json
+- MyWebApp/package.json
 
 Contents where borrowed and slightly modified from [this file](https://github.com/fullstackreact/food-lookup-demo/blob/master/package.json).
 
-* MyWebApp/start-client.js
+- MyWebApp/start-client.js
 
 Contents where borrowed from [this file](https://github.com/fullstackreact/food-lookup-demo/blob/master/start-client.js)
 
 ### Test the SERVER
 
-* Minimal testing
+- Minimal testing
 
 Within the top directory
 
@@ -110,7 +110,7 @@ NODE_ENV:  undefined
 Find the server at: http://localhost:3001/
 ```
 
-* Testing the database
+- Testing the database
 
 In the terminal log in as root and used the sample.sql file included in this repo
 
@@ -180,36 +180,36 @@ The main function in this file doing the query is
         .then(parseJSON);
       }
 ```
+
 ---
 
 ## Project Structure
 
 BSE_25_3_capstone_project/
-├── client/                      # React frontend
-│   ├── package.json
-│   ├── package-lock.json
-│   ├── public/                  # Static assets
-│   │   ├── favicon.ico
-│   │   └── index.html
-│   └── src/                     # React source code
-│       ├── Actions.js
-│       ├── App.js
-│       ├── Client.js
-│       ├── components/
-│       │   ├── HeaderNavigation.js
-│       │   ├── logo.png
-│       │   └── Search.js
-│       ├── index.css
-│       ├── index.js
-│       ├── Reducers.js
-│       └── Sagas.js
-├── package.json                 # Node.js backend dependencies
+├── client/ # React frontend
+│ ├── package.json
+│ ├── package-lock.json
+│ ├── public/ # Static assets
+│ │ ├── favicon.ico
+│ │ └── index.html
+│ └── src/ # React source code
+│ ├── Actions.js
+│ ├── App.js
+│ ├── Client.js
+│ ├── components/
+│ │ ├── HeaderNavigation.js
+│ │ ├── logo.png
+│ │ └── Search.js
+│ ├── index.css
+│ ├── index.js
+│ ├── Reducers.js
+│ └── Sagas.js
+├── package.json # Node.js backend dependencies
 ├── package-lock.json
-├── README.md                    # Project documentation
-├── sample.sql                   # Sample database
-├── server.js                    # Node/Express backend
-└── start-client.js              # Script to start client
-
+├── README.md # Project documentation
+├── sample.sql # Sample database
+├── server.js # Node/Express backend
+└── start-client.js # Script to start client
 
 ## Tech Stack
 

@@ -6,7 +6,9 @@ test('reducer initializes with empty searchData', () => {
 });
 
 test('reducer handles CHANGE_SEARCH_DATA', () => {
-  const next = reducer(undefined, { type: 'CHANGE_SEARCH_DATA', data: [{ first_name: 'Ada' }] });
+  const next = reducer(undefined, {
+    type: 'CHANGE_SEARCH_DATA',
+    data: [{ first_name: 'Ada' }],
+  });
   expect(next.searchData).toEqual([{ first_name: 'Ada' }]);
 });
-

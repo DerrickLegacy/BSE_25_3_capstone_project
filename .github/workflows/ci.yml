@@ -3,7 +3,7 @@ name: Node.js React CI
 # Trigger CI on push or pull request to main branch
 on:
   push:
-    branches: ["**"]
+    branches: ['**']
     # branches: ["main"]
   pull_request:
     branches: ['main']
@@ -42,7 +42,7 @@ jobs:
         #run: npm install --no-audit --no-fund
         #working-directory: root
         #run: npm ci
-        
+
         #run: npm install --no-audit --no-fund
         run: npm ci
         working-directory: client

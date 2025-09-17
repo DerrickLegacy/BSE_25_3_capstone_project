@@ -6,7 +6,9 @@ module.exports = {
     '\\.(gif|ttf|eot|svg|png)$': '<rootDir>/test/__mocks__/fileMock.js',
   },
   transform: {
-    '^.+\\.[tj]sx?$': ['babel-jest', { presets: ['@babel/preset-env', '@babel/preset-react'] }],
+    '^.+\\.[tj]sx?$': [
+      'babel-jest',
+      { presets: ['@babel/preset-env', '@babel/preset-react'] },
+    ],
   },
 };
-

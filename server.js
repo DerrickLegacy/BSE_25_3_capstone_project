@@ -1,6 +1,7 @@
 // Load environment variables from .env at the very top
 require('dotenv').config();
 
+// eslint-disable-next-line no-console
 console.log('Loaded DB:', process.env.DB_NAME);
 
 const express = require('express');
@@ -60,17 +61,21 @@ app.get('/api/books', (req, res) => {
     if (rows.length > 0) {
       const result = rows.map((entry) => {
         const e = {};
-        COLUMNS.forEach((c) => (e[c] = entry[c]));
+        COLUMNS.forEach((c) => {
+          // eslint-disable-next-line no-return-assign
+          e[c] = entry[c];
+        });
         return e;
       });
       res.json(result);
-    } else {
-      res.json([]);
+      return;
     }
+    res.json([]);
   });
 });
 
 // Start the server
 app.listen(app.get('port'), () => {
+  // eslint-disable-next-line no-console
   console.log(`Server running at: http://localhost:${app.get('port')}/`);
 });

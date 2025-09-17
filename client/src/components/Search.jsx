@@ -57,7 +57,9 @@ function Search() {
           <h2 className="jumbotron-heading">Authors Database</h2>
         </div>
         <Col className="jumbotron jumbotron-header rounded mb-4 p-4">
-          <h2 className="text-primary">Filter Authors Database by First Name</h2>
+          <h2 className="text-primary">
+            Filter Authors Database by First Name
+          </h2>
         </Col>
       </Row>
 
@@ -129,4 +131,3 @@ function Search() {
 }
 
 export default Search;
-

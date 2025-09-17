@@ -4,15 +4,16 @@ const initialState = {
   searchData: [],
 };
 
-function mainReducer(state = initialState, action) {
+function mainReducer(state, action) {
+  const currentState = state || initialState;
   switch (action.type) {
     case 'CHANGE_SEARCH_DATA':
       return {
-        ...state,
+        ...currentState,
         searchData: action.data,
       };
     default:
-      return state;
+      return currentState;
   }
 }
 

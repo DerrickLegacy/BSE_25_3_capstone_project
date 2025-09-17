@@ -55,7 +55,7 @@ app.get('/api/books', (req, res) => {
       ? 'SELECT * FROM authors'
       : `SELECT * FROM authors WHERE first_name REGEXP '^${firstName}'`;
 
-  pool.query(queryString, (err, rows) => {
+  return pool.query(queryString, (err, rows) => {
     if (err) throw err;
 
     if (rows.length > 0) {

@@ -1,26 +1,32 @@
-// src/components/Search.js
 import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { Container, Row, Form, FormGroup, Input, Button, Col } from 'reactstrap';
+import {
+  Container,
+  Row,
+  Form,
+  FormGroup,
+  Input,
+  Button,
+  Col,
+} from 'reactstrap';
 import {
   createColumnHelper,
   flexRender,
   getCoreRowModel,
-  useReactTable
+  useReactTable,
 } from '@tanstack/react-table';
 
-const Search = () => {
+function Search() {
   const dispatch = useDispatch();
-  const searchData = useSelector(state => state.searchData || []);
+  const searchData = useSelector((state) => state.searchData || []);
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Redux fetch handler
   const fetchData = (term) => {
     dispatch({ type: 'FETCH_SEARCH_DATA', payload: term });
   };
 
   const handleChange = (e) => {
-    const value = e.target.value;
+    const { value } = e.target;
     setSearchTerm(value);
     fetchData({ firstName: value === '' ? '*' : value });
   };
@@ -32,78 +38,84 @@ const Search = () => {
 
   const handleSubmit = (e) => e.preventDefault();
 
-  // TanStack React Table setup
   const columnHelper = createColumnHelper();
   const columns = [
     columnHelper.accessor('first_name', { header: 'First Name' }),
-    columnHelper.accessor('last_name', { header: 'Last Name' })
+    columnHelper.accessor('last_name', { header: 'Last Name' }),
   ];
 
   const table = useReactTable({
     data: searchData,
     columns,
-    getCoreRowModel: getCoreRowModel()
+    getCoreRowModel: getCoreRowModel(),
   });
 
   return (
     <Container className="my-4">
-      {/* Title */}
       <Row className="mb-3 top10">
         <div className="">
           <h2 className="jumbotron-heading">Authors Database</h2>
         </div>
-        <Col className='jumbotron jumbotron-header rounded mb-4 p-4'>
-          <h2 className="text-primary">Filter Authors Database by First Name</h2>
+        <Col className="jumbotron jumbotron-header rounded mb-4 p-4">
+          <h2 className="text-primary">
+            Filter Authors Database by First Name
+          </h2>
         </Col>
       </Row>
 
-      {/* Search Form */}
       <Row className="mb-4">
         <Col md={6}>
           <Form inline onSubmit={handleSubmit}>
             <Row>
-              <Col><FormGroup className="me-2">
-                <Input
-                  type="search"
-                  placeholder="First Name"
-                  value={searchTerm}
-                  onChange={handleChange}
-                  className="form-control"
-                />
-              </FormGroup></Col>
+              <Col>
+                <FormGroup className="me-2">
+                  <Input
+                    type="search"
+                    placeholder="First Name"
+                    value={searchTerm}
+                    onChange={handleChange}
+                    className="form-control"
+                  />
+                </FormGroup>
+              </Col>
               <Col>
                 <Button className="btn-ll5" onClick={handleClear}>
                   Clear
-                </Button></Col>
+                </Button>
+              </Col>
             </Row>
           </Form>
         </Col>
       </Row>
 
-      {/* Data Table */}
       {searchData.length > 0 && (
         <Row>
           <Col>
             <div className="table-responsive shadow-sm rounded ">
               <table className="table table-striped table-hover shadow-sm rounded">
-
                 <thead className="table-dark">
-                  {table.getHeaderGroups().map(headerGroup => (
+                  {table.getHeaderGroups().map((headerGroup) => (
                     <tr key={headerGroup.id}>
-                      {headerGroup.headers.map(header => (
+                      {headerGroup.headers.map((header) => (
                         <th key={header.id}>
-                          {flexRender(header.column.columnDef.header, header.getContext())}
+                          {flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
                         </th>
                       ))}
                     </tr>
                   ))}
                 </thead>
                 <tbody>
-                  {table.getRowModel().rows.map(row => (
+                  {table.getRowModel().rows.map((row) => (
                     <tr key={row.id}>
-                      {row.getVisibleCells().map(cell => (
+                      {row.getVisibleCells().map((cell) => (
                         <td key={cell.id}>
-                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
                         </td>
                       ))}
                     </tr>
@@ -116,6 +128,6 @@ const Search = () => {
       )}
     </Container>
   );
-};
+}
 
 export default Search;

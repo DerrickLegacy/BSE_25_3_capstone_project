@@ -1,18 +1,19 @@
 import './Actions';
 
-var initialState = {
-  searchData: []
+const initialState = {
+  searchData: [],
 };
 
-function mainReducer(state = initialState, action) {
+function mainReducer(state, action) {
+  const currentState = state || initialState;
   switch (action.type) {
     case 'CHANGE_SEARCH_DATA':
       return {
-        ...state,
-        searchData: action.data
+        ...currentState,
+        searchData: action.data,
       };
     default:
-      return state;
+      return currentState;
   }
 }
 

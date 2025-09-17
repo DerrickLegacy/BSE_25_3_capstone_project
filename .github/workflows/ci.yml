@@ -39,6 +39,11 @@ jobs:
         run: npm ci
 
       - name: Install frontend dependencies
+        #run: npm install --no-audit --no-fund
+        #working-directory: root
+        #run: npm ci
+        
+        #run: npm install --no-audit --no-fund
         run: npm ci
         working-directory: client
 

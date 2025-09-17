@@ -4,9 +4,9 @@ import { BrowserRouter } from 'react-router-dom';
 import { createStore, applyMiddleware } from 'redux';
 import { Provider } from 'react-redux';
 import createSagaMiddleware from 'redux-saga';
-import App from './App.jsx';
+import App from './App';
 import mainReducer from './Reducers';
-import watchFetchSearchData from './Sagas.js';
+import watchFetchSearchData from './Sagas';
 
 import './index.css';
 import 'bootstrap/dist/css/bootstrap.css';

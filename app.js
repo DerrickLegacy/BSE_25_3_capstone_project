@@ -1,11 +1,7 @@
-// Load environment variables from .env at the very top
+// app.js
 require('dotenv').config();
-
-// eslint-disable-next-line no-console
-console.log('Loaded DB:', process.env.DB_NAME);
-
 const express = require('express');
-const mysql = require('mysql2/promise'); // Use promise API
+const mysql = require('mysql2');
 const path = require('path');
 
 const app = express();
@@ -20,9 +16,6 @@ app.use((req, res, next) => {
   next();
 });
 
-// Set port from environment or default
-app.set('port', process.env.PORT || 3001);
-
 // Serve React app in production
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static('client/build'));
@@ -31,20 +24,19 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
-// Create MySQL connection pool using environment variables
+// MySQL pool
 const pool = mysql.createPool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
   port: process.env.DB_PORT || 3306,
-  charset: 'utf8mb4', // Fix for Node.js v22+
 });
 
 const COLUMNS = ['last_name', 'first_name'];
 
-// API endpoint to fetch books/authors
-app.get('/api/books', async (req, res) => {
+// API endpoint
+app.get('/api/books', (req, res) => {
   const { firstName } = req.query;
 
   if (!firstName) {
@@ -56,8 +48,8 @@ app.get('/api/books', async (req, res) => {
       ? 'SELECT * FROM authors'
       : `SELECT * FROM authors WHERE first_name REGEXP '^${firstName}'`;
 
-  try {
-    const [rows] = await pool.query(queryString);
+  return pool.query(queryString, (err, rows) => {
+    if (err) throw err;
 
     if (rows.length > 0) {
       const result = rows.map((entry) => {
@@ -71,15 +63,7 @@ app.get('/api/books', async (req, res) => {
       return;
     }
     res.json([]);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+  });
 });
 
-// Start the server
-app.listen(app.get('port'), () => {
-  // eslint-disable-next-line no-console
-  console.log(`Server running at: http://localhost:${app.get('port')}/`);
-});
-
-module.exports = app;
+module.exports = app; // 👈 Export only the app

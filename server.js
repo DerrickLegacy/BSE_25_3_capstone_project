@@ -162,8 +162,13 @@ app.get('/api/books', async (req, res) => {
       res.json(result);
       return;
     }
-    res.json([]);
+  //   res.json([]);
+  // } catch (err) {
+  //   res.status(500).json({ error: err.message });
+    // }
+       res.json([]);
   } catch (err) {
+    console.error('DB Query Error:', err);  // <-- This will help debug your test failure
     res.status(500).json({ error: err.message });
   }
 });

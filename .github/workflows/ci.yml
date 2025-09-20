@@ -64,6 +64,11 @@ jobs:
       - name: Wait for MySQL
         run: sleep 15 # wait for MySQL service to start
 
+      - name: Run database migrations
+        run: npm run migrate
+        working-directory: .
+
+        
       - name: Run backend tests
         run: npm test
         working-directory: .

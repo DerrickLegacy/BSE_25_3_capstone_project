@@ -11,20 +11,22 @@
   "dependencies": {
     "dotenv": "^17.2.2",
     "express": "^5.1.0",
+    "knex": "^3.1.0",
     "mysql": "^2.18.1",
-    "mysql2": "^3.14.5",
+    "mysql2": "^3.15.0",
     "nodemon": "^3.1.10",
     "react-transition-group": "^4.4.5"
   },
   "scripts": {
     "start": "concurrently \"npm run server\" \"npm run client\"",
-    "server": "node server.js",
+    "server": "node index.js",
     "client": "node start-client.js",
     "test": "jest",
     "lint": "node lint.js",
     "lint:fix": "eslint . --ext .js,.jsx --fix",
     "prettier:check": "prettier --check .",
-    "prettier:fix": "prettier --write ."
+    "prettier:fix": "prettier --write .",
+    "migrate": "knex migrate:latest"
   },
   "devDependencies": {
     "@babel/core": "^7.28.4",
@@ -44,7 +46,9 @@
     "eslint-plugin-react-hooks": "^4.6.2",
     "globals": "^16.4.0",
     "jest": "^30.1.3",
-    "prettier": "^3.6.2"
+    "knex-cli": "^1.0.2",
+    "prettier": "^3.6.2",
+    "supertest": "^7.1.4"
   },
   "transform": {
     "^.+\\.[tj]sx?$": "babel-jest"

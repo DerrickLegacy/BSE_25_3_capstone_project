@@ -34,8 +34,8 @@
 
 module.exports = {
   env: {
-    browser: true,  // for frontend
-    node: true,     // for backend
+    browser: true, // for frontend
+    node: true, // for backend
     es2021: true,
     jest: true,
   },
@@ -48,15 +48,12 @@ module.exports = {
     ecmaVersion: 12,
     sourceType: 'module',
     ecmaFeatures: {
-      jsx: true,  // needed for React files in frontend
+      jsx: true, // needed for React files in frontend
     },
   },
-  plugins: [
-    'react',
-    'react-hooks',
-  ],
+  plugins: ['react', 'react-hooks'],
   rules: {
-    'no-console': 'warn',
+    'no-console': 'off',
     'react/prop-types': 'off',
     'react/react-in-jsx-scope': 'off', // React 17+
   },
@@ -99,4 +96,3 @@ module.exports = {
     },
   ],
 };
-

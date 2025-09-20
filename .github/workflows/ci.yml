@@ -12,13 +12,24 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
 
+    env:
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
+      DB_NAME: ${{ secrets.MYSQL_DATABASE }}
+
     services:
       mysql:
         image: mysql:8.0
         env:
-            
+          
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_PORT: ${{ secrets.DB_PORT }} 
           MYSQL_ROOT_PASSWORD: ${{secrets.MYSQL_ROOT_PASSWORD}}
           MYSQL_DATABASE: ${{secrets.MYSQL_DATABASE}}
+          MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
 
           
         ports:

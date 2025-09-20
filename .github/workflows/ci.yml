@@ -16,8 +16,10 @@ jobs:
       mysql:
         image: mysql:8.0
         env:
-          DB_PASSWORD: dummy_password
-          DB_NAME: test_db
+          
+          MYSQL_ROOT_PASSWORD: ${{secrets.MYSQL_ROOT_PASSWORD}}
+          MYSQL_DATABASE: ${{secrets.MYSQL_DATABASE}}
+
           
         ports:
           - 3306:3306

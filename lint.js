@@ -1,11 +1,11 @@
 // lint.js
 /* eslint-disable no-console */
+/* eslint-disable import/no-extraneous-dependencies */
 
 const { ESLint } = require('eslint');
 
-
 (async function main() {
-    const chalk = await import('chalk');
+  const chalk = await import('chalk');
   try {
     const eslint = new ESLint({
       extensions: ['.js', '.jsx'],
@@ -24,9 +24,8 @@ const { ESLint } = require('eslint');
       console.log(resultText);
       process.exit(1);
     } else {
-        //   console.log('✔ No problems found');
-        console.log(chalk.default.green('✔ No problems found'));
-
+      //   console.log('✔ No problems found');
+      console.log(chalk.default.green('✔ No problems found'));
     }
   } catch (err) {
     console.error(chalk.default.red('❌ ESLint failed:'), err);

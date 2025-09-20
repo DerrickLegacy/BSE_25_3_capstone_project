@@ -1,5 +1,5 @@
 const request = require('supertest');
-//const app = require('../server'); // You may need to export your app from server.js
+// const app = require('../server'); // You may need to export your app from server.js
 const { app, pool } = require('../server');
 
 describe('Integration Tests', () => {
@@ -9,8 +9,7 @@ describe('Integration Tests', () => {
     expect(Array.isArray(response.body)).toBe(true);
   });
 
-   afterAll(async () => {
-    await pool.end(); // ✅ Gracefully close the DB pool
+  afterAll(async () => {
+    await pool.end(); //  Gracefully close the DB pool
   });
 });
-

@@ -4,7 +4,6 @@
 require('dotenv').config();
 
 module.exports = {
-
   development: {
     client: 'mysql2',
     connection: {
@@ -16,8 +15,8 @@ module.exports = {
     },
     migrations: {
       tableName: 'knex_migrations',
-      directory: './migrations'
-    }
+      directory: './migrations',
+    },
   },
 
   staging: {
@@ -31,12 +30,12 @@ module.exports = {
     },
     pool: {
       min: 2,
-      max: 10
+      max: 10,
     },
     migrations: {
       tableName: 'knex_migrations',
-      directory: './migrations'
-    }
+      directory: './migrations',
+    },
   },
 
   production: {
@@ -50,12 +49,11 @@ module.exports = {
     },
     pool: {
       min: 2,
-      max: 10
+      max: 10,
     },
     migrations: {
       tableName: 'knex_migrations',
-      directory: './migrations'
-    }
-  }
-
+      directory: './migrations',
+    },
+  },
 };

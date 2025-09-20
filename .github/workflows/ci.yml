@@ -23,15 +23,13 @@ jobs:
       mysql:
         image: mysql:8.0
         env:
-          
           DB_USER: ${{ secrets.DB_USER }}
           DB_HOST: ${{ secrets.DB_HOST }}
-          DB_PORT: ${{ secrets.DB_PORT }} 
+          DB_PORT: ${{ secrets.DB_PORT }}
           MYSQL_ROOT_PASSWORD: ${{secrets.MYSQL_ROOT_PASSWORD}}
           MYSQL_DATABASE: ${{secrets.MYSQL_DATABASE}}
           MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
 
-          
         ports:
           - 3306:3306
         options: >-
@@ -68,7 +66,6 @@ jobs:
         run: npm run migrate
         working-directory: .
 
-        
       - name: Run backend tests
         run: npm test
         working-directory: .

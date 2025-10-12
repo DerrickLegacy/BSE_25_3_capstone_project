@@ -26,12 +26,14 @@ app.use((req, res, next) => {
 app.set('port', process.env.PORT || 3001);
 
 // Serve React app in production
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static('client/build'));
-  app.get('/', (req, res) => {
-    res.sendFile(path.resolve('client/build', 'index.html'));
-  });
-}
+// if (process.env.NODE_ENV === 'production') {
+//   app.use(express.static('client/build'));
+//   app.get('/', (req, res) => {
+//     res.sendFile(path.resolve('client/build', 'index.html'));
+//   });
+// }
+
+
 
 // Create MySQL connection pool using environment variables
 const pool = mysql.createPool({
@@ -77,6 +79,18 @@ app.get('/api/books', async (req, res) => {
     console.error('DB Query Error:', err);
     return res.status(500).json({ error: err.message });
   }
+});
+
+
+
+// Serve React frontend for all environments (production/staging)
+const buildPath = path.join(__dirname, 'client', 'build');
+app.use(express.static(buildPath));
+
+// Keep API routes above this!
+// Catch-all to serve index.html for React Router
+app.get('*', (req, res) => {
+  res.sendFile(path.join(buildPath, 'index.html'));
 });
 
 // export sql pool

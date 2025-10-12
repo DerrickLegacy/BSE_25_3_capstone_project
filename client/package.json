@@ -39,9 +39,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "jest",
-
     "lint": "eslint . --ext .js,.jsx"
-
   },
   "browserslist": {
     "production": [

@@ -4,7 +4,9 @@
 exports.up = function up(knex) {
   return knex.schema.createTable('authors', (table) => {
     table.increments('id').primary();
-    table.string('name').notNullable();
+    table.string('first_name').notNullable();
+    table.string('middle_name');
+    table.string('last_name').notNullable();
     table.timestamps(true, true);
   });
 };
@@ -15,3 +17,4 @@ exports.up = function up(knex) {
 exports.down = function down(knex) {
   return knex.schema.dropTable('authors');
 };
+

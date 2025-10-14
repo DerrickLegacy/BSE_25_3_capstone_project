@@ -14,14 +14,14 @@ jobs:
 
     env:
       DB_HOST: 127.0.0.1
-      DB_PORT: 3306
-      DB_USER: root
+      DB_PORT: 5432
+      DB_USER: postgres
       DB_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
       DB_NAME: ${{ secrets.MYSQL_DATABASE }}
 
     services:
       mysql:
-        image: mysql:8.0
+        image: postgres:15
         env:
           DB_USER: ${{ secrets.DB_USER }}
           DB_HOST: ${{ secrets.DB_HOST }}
@@ -31,7 +31,7 @@ jobs:
           MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
 
         ports:
-          - 3306:3306
+          - 5432:5432
         options: >-
           --health-cmd="mysqladmin ping --silent"
           --health-interval=10s

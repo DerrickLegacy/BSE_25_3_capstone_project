@@ -33,7 +33,7 @@ jobs:
         ports:
           - 5432:5432
         options: >-
-          --health-cmd="mysqladmin ping --silent"
+          --health-cmd="pg_isready -U postgres"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=3
@@ -59,8 +59,8 @@ jobs:
         run: npm ci
         working-directory: client
 
-      - name: Wait for MySQL
-        run: sleep 15 # wait for MySQL service to start
+      - name: Wait for Postgres
+        run: sleep 15 # wait for postgres service to start
 
       - name: Run database migrations
         run: npm run migrate

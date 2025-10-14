@@ -15,6 +15,7 @@
     "mysql": "^2.18.1",
     "mysql2": "^3.15.0",
     "nodemon": "^3.1.10",
+    "pg": "^8.16.3",
     "react-transition-group": "^4.4.5"
   },
   "scripts": {

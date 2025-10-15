@@ -23,12 +23,11 @@ jobs:
       mysql:
         image: postgres:15
         env:
-          DB_USER: ${{ secrets.DB_USER }}
-          DB_HOST: ${{ secrets.DB_HOST }}
-          DB_PORT: ${{ secrets.DB_PORT }}
-          MYSQL_ROOT_PASSWORD: ${{secrets.MYSQL_ROOT_PASSWORD}}
-          MYSQL_DATABASE: ${{secrets.MYSQL_DATABASE}}
-          MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+          PGHOST: ${{ secrets.PG_HOST }}
+          PGPORT: ${{ secrets.PG_PORT }}
+          PGUSER: ${{ secrets.PG_USER }}
+          PGPASSWORD: ${{ secrets.PG_PASSWORD }}
+          PGDATABASE: ${{ secrets.PG_DATABASE }}
 
         ports:
           - 5432:5432

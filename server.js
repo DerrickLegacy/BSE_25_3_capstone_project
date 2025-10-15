@@ -63,17 +63,18 @@ app.get('/api/books', async (req, res) => {
       : `SELECT * FROM authors WHERE first_name ~ '^${firstName}'`;
 
   try {
-    const [rows] = await pool.query(queryString);
+    const result = await pool.query(queryString);
+    const rows = result.rows;
 
     if (rows.length > 0) {
-      const result = rows.map((entry) => {
+      const filtered = rows.map((entry) => {
         const e = {};
         COLUMNS.forEach((c) => {
           e[c] = entry[c];
         });
         return e;
       });
-      return res.json(result);
+      return res.json(filtered);
     }
 
     return res.json([]);

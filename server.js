@@ -33,8 +33,6 @@ app.set('port', process.env.PORT || 3001);
 //   });
 // }
 
-
-
 // Create MySQL connection pool using environment variables
 const { Pool } = require('pg');
 
@@ -45,7 +43,6 @@ const pool = new Pool({
   database: process.env.PG_NAME,
   port: process.env.PG_PORT || 5432,
 });
-
 
 const COLUMNS = ['last_name', 'first_name'];
 
@@ -64,7 +61,7 @@ app.get('/api/books', async (req, res) => {
 
   try {
     const result = await pool.query(queryString);
-    const rows = result.rows;
+    const { rows } = result;
 
     if (rows.length > 0) {
       const filtered = rows.map((entry) => {
@@ -83,8 +80,6 @@ app.get('/api/books', async (req, res) => {
     return res.status(500).json({ error: err.message });
   }
 });
-
-
 
 // Serve React frontend for all environments (production/staging)
 const buildPath = path.join(__dirname, 'client', 'build');

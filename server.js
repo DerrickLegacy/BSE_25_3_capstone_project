@@ -7,7 +7,7 @@ require('dotenv').config();
 console.log('Loaded DB:', process.env.DB_NAME);
 
 const express = require('express');
-const mysql = require('mysql2/promise'); // Use promise API
+
 const path = require('path');
 
 const app = express();

@@ -7,7 +7,7 @@ require('dotenv').config();
 console.log('Loaded DB:', process.env.DB_NAME);
 
 const express = require('express');
-const mysql = require('mysql2/promise'); // Use promise API
+
 const path = require('path');
 
 const app = express();
@@ -26,21 +26,22 @@ app.use((req, res, next) => {
 app.set('port', process.env.PORT || 3001);
 
 // Serve React app in production
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static('client/build'));
-  app.get('/', (req, res) => {
-    res.sendFile(path.resolve('client/build', 'index.html'));
-  });
-}
+// if (process.env.NODE_ENV === 'production') {
+//   app.use(express.static('client/build'));
+//   app.get('/', (req, res) => {
+//     res.sendFile(path.resolve('client/build', 'index.html'));
+//   });
+// }
 
 // Create MySQL connection pool using environment variables
-const pool = mysql.createPool({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  port: process.env.DB_PORT || 3306,
-  charset: 'utf8mb4', // Fix for Node.js v22+
+const { Pool } = require('pg');
+
+const pool = new Pool({
+  host: process.env.PG_HOST,
+  user: process.env.PG_USER,
+  password: process.env.PG_PASSWORD,
+  database: process.env.PG_NAME,
+  port: process.env.PG_PORT || 5432,
 });
 
 const COLUMNS = ['last_name', 'first_name'];
@@ -56,20 +57,21 @@ app.get('/api/books', async (req, res) => {
   const queryString =
     firstName === '*'
       ? 'SELECT * FROM authors'
-      : `SELECT * FROM authors WHERE first_name REGEXP '^${firstName}'`;
+      : `SELECT * FROM authors WHERE first_name ~ '^${firstName}'`;
 
   try {
-    const [rows] = await pool.query(queryString);
+    const result = await pool.query(queryString);
+    const { rows } = result;
 
     if (rows.length > 0) {
-      const result = rows.map((entry) => {
+      const filtered = rows.map((entry) => {
         const e = {};
         COLUMNS.forEach((c) => {
           e[c] = entry[c];
         });
         return e;
       });
-      return res.json(result);
+      return res.json(filtered);
     }
 
     return res.json([]);
@@ -77,6 +79,16 @@ app.get('/api/books', async (req, res) => {
     console.error('DB Query Error:', err);
     return res.status(500).json({ error: err.message });
   }
+});
+
+// Serve React frontend for all environments (production/staging)
+const buildPath = path.join(__dirname, 'client', 'build');
+app.use(express.static(buildPath));
+
+// Keep API routes above this!
+// Catch-all to serve index.html for React Router
+app.get(/.*/, (req, res) => {
+  res.sendFile(path.join(buildPath, 'index.html'));
 });
 
 // export sql pool

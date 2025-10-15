@@ -36,14 +36,16 @@ app.set('port', process.env.PORT || 3001);
 
 
 // Create MySQL connection pool using environment variables
-const pool = mysql.createPool({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  port: process.env.DB_PORT || 3306,
-  charset: 'utf8mb4', // Fix for Node.js v22+
+const { Pool } = require('pg');
+
+const pool = new Pool({
+  host: process.env.PG_HOST,
+  user: process.env.PG_USER,
+  password: process.env.PG_PASSWORD,
+  database: process.env.PG_NAME,
+  port: process.env.PG_PORT || 5432,
 });
+
 
 const COLUMNS = ['last_name', 'first_name'];
 
@@ -58,7 +60,7 @@ app.get('/api/books', async (req, res) => {
   const queryString =
     firstName === '*'
       ? 'SELECT * FROM authors'
-      : `SELECT * FROM authors WHERE first_name REGEXP '^${firstName}'`;
+      : `SELECT * FROM authors WHERE first_name ~ '^${firstName}'`;
 
   try {
     const [rows] = await pool.query(queryString);

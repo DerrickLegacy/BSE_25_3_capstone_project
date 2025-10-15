@@ -92,7 +92,7 @@ app.use(express.static(buildPath));
 
 // Keep API routes above this!
 // Catch-all to serve index.html for React Router
-app.get('*', (req, res) => {
+app.get(/.*/, (req, res) => {
   res.sendFile(path.join(buildPath, 'index.html'));
 });
 

@@ -13,14 +13,16 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      DB_HOST: 127.0.0.1
-      DB_PORT: 5432
-      DB_USER: postgres
-      DB_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
-      DB_NAME: ${{ secrets.MYSQL_DATABASE }}
+      
+      PG_HOST: 127.0.0.1  # Or use secrets.PG_HOST if running remotely
+      PG_PORT: ${{ secrets.PG_PORT }}
+      PG_USER: ${{ secrets.PG_USER }}
+      PG_PASSWORD: ${{ secrets.PG_PASSWORD }}
+      PG_NAME: ${{ secrets.PG_DATABASE }}
+
 
     services:
-      mysql:
+      postgres:
         image: postgres:15
         env:
           PG_HOST: ${{ secrets.PG_HOST }}

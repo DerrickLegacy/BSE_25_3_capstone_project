@@ -105,11 +105,7 @@ console.log('Loaded DB:', process.env.PG_NAME);
 
 const app = express();
 
-// =====================
-// Middleware
-// =====================
-
-// Enable CORS
+// Middleware to handle CORS
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header(
@@ -135,47 +131,15 @@ const pool = new Pool({
       : false, // only enable SSL in production
 });
 
-pool.on('error', (err) => {
-  console.error('Unexpected error on idle client', err);
-  process.exit(-1);
-});
-
-let sampleDataLoaded = false;
-
-const loadSampleDataIfEmpty = async () => {
-  if (sampleDataLoaded) return;
-  const client = await pool.connect();
-
-  try {
-    const result = await client.query('SELECT COUNT(*) FROM authors');
-    const count = parseInt(result.rows[0].count, 10);
-
-    if (count === 0) {
-      console.log('Loading sample data from sample.sql');
-
-      const sqlFilePath = path.join(__dirname, 'sample.sql');
-      const sql = fs.readFileSync(sqlFilePath, 'utf8');
-
-      await client.query(sql);
-      console.log(`Sample data of  ${count} record(s) loaded successfully`);
-    }
-    sampleDataLoaded = true;
-  } catch (err) {
-    console.error('Error checking or loading sample data:', err.stack);
-  } finally {
-    client.release();
-  }
-};
-
-loadSampleDataIfEmpty();
-
 const COLUMNS = ['last_name', 'first_name'];
 
 // API endpoint to fetch authors/books
 app.get('/api/books', async (req, res) => {
   const { firstName } = req.query;
 
-  if (!firstName) return res.json({ error: 'Missing required parameters' });
+  if (!firstName) {
+    return res.json({ error: 'Missing required parameters' });
+  }
 
   try {
     let rows;
@@ -213,13 +177,6 @@ app.use(express.static(buildPath));
 app.get(/.*/, (req, res) => {
   res.sendFile(path.join(buildPath, 'index.html'));
 });
-app.listen(app.get('port'), () => {
-  console.log(`Server running on port ${app.get('port')}`);
-});
-
-// =====================
-// Export for testing / other modules
-// =====================
 
 // Export app and pool
 module.exports = { app, pool };

@@ -17,4 +17,3 @@ exports.up = function up(knex) {
 exports.down = function down(knex) {
   return knex.schema.dropTable('authors');
 };
-

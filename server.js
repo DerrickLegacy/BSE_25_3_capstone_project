@@ -39,15 +39,11 @@ const pool = new Pool({
   port: process.env.PG_PORT || 5432,
 });
 
-// Handle unexpected errors on idle clients
 pool.on('error', (err) => {
   console.error('Unexpected error on idle client', err);
   process.exit(-1);
 });
 
-// =====================
-// Load sample data if empty
-// =====================
 let sampleDataLoaded = false;
 
 const loadSampleDataIfEmpty = async () => {
@@ -75,12 +71,7 @@ const loadSampleDataIfEmpty = async () => {
   }
 };
 
-// Call the function
 loadSampleDataIfEmpty();
-
-// =====================
-// API Routes
-// =====================
 
 const COLUMNS = ['last_name', 'first_name'];
 
@@ -115,21 +106,13 @@ app.get('/api/books', async (req, res) => {
   }
 });
 
-// =====================
-// Serve React Frontend
-// =====================
-
 const buildPath = path.join(__dirname, 'client', 'build');
 app.use(express.static(buildPath));
 
-// Catch-all route for React Router
 app.get(/.*/, (req, res) => {
   res.sendFile(path.join(buildPath, 'index.html'));
 });
 
-// =====================
-// Start Server
-// =====================
 
 app.listen(app.get('port'), () => {
   console.log(`Server running on port ${app.get('port')}`);

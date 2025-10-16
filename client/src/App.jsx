@@ -28,6 +28,7 @@ import HeaderNavigation from './components/HeaderNavigation';
 import ConnectedSearch from './components/Search';
 
 import './index.css';
+import Footer from './components/Footer';
 
 function App() {
   return (
@@ -35,6 +36,7 @@ function App() {
       <Container>
         <HeaderNavigation />
         <ConnectedSearch className="jumbotron" />
+        <Footer />
       </Container>
     </div>
   );

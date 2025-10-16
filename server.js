@@ -1,18 +1,20 @@
-// server.js  defines express app
+// server.js – Express server with PostgreSQL connection and sample data loader
 
-// Load environment variables from .env at the very top
+// Load environment variables
 require('dotenv').config();
 
-// eslint-disable-next-line no-console
-console.log('Loaded DB:', process.env.DB_NAME);
-
 const express = require('express');
-
 const path = require('path');
+const fs = require('fs');
+const { Pool } = require('pg');
 
 const app = express();
 
-// Middleware to handle CORS
+// =====================
+// Middleware
+// =====================
+
+// Enable CORS
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header(
@@ -25,16 +27,9 @@ app.use((req, res, next) => {
 // Set port from environment or default
 app.set('port', process.env.PORT || 3001);
 
-// Serve React app in production
-// if (process.env.NODE_ENV === 'production') {
-//   app.use(express.static('client/build'));
-//   app.get('/', (req, res) => {
-//     res.sendFile(path.resolve('client/build', 'index.html'));
-//   });
-// }
-
-// Create MySQL connection pool using environment variables
-const { Pool } = require('pg');
+// =====================
+// PostgreSQL Pool Setup
+// =====================
 
 const pool = new Pool({
   host: process.env.PG_HOST,
@@ -44,15 +39,55 @@ const pool = new Pool({
   port: process.env.PG_PORT || 5432,
 });
 
+// Handle unexpected errors on idle clients
+pool.on('error', (err) => {
+  console.error('Unexpected error on idle client', err);
+  process.exit(-1);
+});
+
+// =====================
+// Load sample data if empty
+// =====================
+let sampleDataLoaded = false;
+
+const loadSampleDataIfEmpty = async () => {
+  if (sampleDataLoaded) return;
+  const client = await pool.connect();
+
+  try {
+    const result = await client.query('SELECT COUNT(*) FROM authors');
+    const count = parseInt(result.rows[0].count, 10);
+
+    if (count === 0) {
+      console.log('Loading sample data from sample.sql');
+
+      const sqlFilePath = path.join(__dirname, 'sample.sql');
+      const sql = fs.readFileSync(sqlFilePath, 'utf8');
+
+      await client.query(sql);
+      console.log(`Sample data of  ${count} record(s) loaded successfully`);
+    }
+    sampleDataLoaded = true;
+  } catch (err) {
+    console.error('Error checking or loading sample data:', err.stack);
+  } finally {
+    client.release();
+  }
+};
+
+// Call the function
+loadSampleDataIfEmpty();
+
+// =====================
+// API Routes
+// =====================
+
 const COLUMNS = ['last_name', 'first_name'];
 
-// API endpoint to fetch books/authors
 app.get('/api/books', async (req, res) => {
   const { firstName } = req.query;
 
-  if (!firstName) {
-    return res.json({ error: 'Missing required parameters' });
-  }
+  if (!firstName) return res.json({ error: 'Missing required parameters' });
 
   const queryString =
     firstName === '*'
@@ -60,8 +95,7 @@ app.get('/api/books', async (req, res) => {
       : `SELECT * FROM authors WHERE first_name ~ '^${firstName}'`;
 
   try {
-    const result = await pool.query(queryString);
-    const { rows } = result;
+    const { rows } = await pool.query(queryString);
 
     if (rows.length > 0) {
       const filtered = rows.map((entry) => {
@@ -81,15 +115,28 @@ app.get('/api/books', async (req, res) => {
   }
 });
 
-// Serve React frontend for all environments (production/staging)
+// =====================
+// Serve React Frontend
+// =====================
+
 const buildPath = path.join(__dirname, 'client', 'build');
 app.use(express.static(buildPath));
 
-// Keep API routes above this!
-// Catch-all to serve index.html for React Router
+// Catch-all route for React Router
 app.get(/.*/, (req, res) => {
   res.sendFile(path.join(buildPath, 'index.html'));
 });
 
-// export sql pool
+// =====================
+// Start Server
+// =====================
+
+app.listen(app.get('port'), () => {
+  console.log(`Server running on port ${app.get('port')}`);
+});
+
+// =====================
+// Export for testing / other modules
+// =====================
+
 module.exports = { app, pool };

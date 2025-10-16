@@ -1,10 +1,9 @@
 name: Node.js React CI
 
-# Trigger CI on push or pull request to main branch
+# Trigger CI on any branch push and PR to main
 on:
   push:
     branches: ['**']
-    # branches: ["main"]
   pull_request:
     branches: ['main']
 
@@ -13,28 +12,19 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      
-      PG_HOST: 127.0.0.1  # Or use secrets.PG_HOST if running remotely
+      PG_HOST: 127.0.0.1
       PG_PORT: ${{ secrets.PG_PORT }}
       PG_USER: ${{ secrets.PG_USER }}
       PG_PASSWORD: ${{ secrets.PG_PASSWORD }}
       PG_NAME: ${{ secrets.PG_DATABASE }}
 
-
     services:
       postgres:
         image: postgres:15
         env:
-          # PG_HOST: ${{ secrets.PG_HOST }}
-          # PG_PORT: ${{ secrets.PG_PORT }}
-          # PG_USER: ${{ secrets.PG_USER }}
-          # PG_PASSWORD: ${{ secrets.PG_PASSWORD }}
-          # PG_DATABASE: ${{ secrets.PG_DATABASE }}
-
           POSTGRES_USER: ${{ secrets.PG_USER }}
-          POSTGRES_PASSWORD: ${{ secrets.PG_PASSWORD }}  
+          POSTGRES_PASSWORD: ${{ secrets.PG_PASSWORD }}
           POSTGRES_DB: ${{ secrets.PG_DATABASE }}
-
         ports:
           - 5432:5432
         options: >-
@@ -44,49 +34,81 @@ jobs:
           --health-retries=3
 
     steps:
+      # 1. Checkout code
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # 2. Generate unique build version
+      - name: Set build version
+        id: version
+        run: |
+          VERSION="staging-$(date +'%Y%m%d%H%M%S')-$(git rev-parse --short HEAD)"
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "Build version: $VERSION"
+
+      # 3. Setup Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
 
+      # 4. Install backend dependencies
       - name: Install backend dependencies
         run: npm ci
 
+      # 5. Install frontend dependencies
       - name: Install frontend dependencies
-        #run: npm install --no-audit --no-fund
-        #working-directory: root
-        #run: npm ci
-
-        #run: npm install --no-audit --no-fund
         run: npm ci
         working-directory: client
 
+      # 6. Wait for Postgres
       - name: Wait for Postgres
-        run: sleep 15 # wait for postgres service to start
+        run: sleep 15
 
+      # 7. Run database migrations
       - name: Run database migrations
         run: npm run migrate
         working-directory: .
 
+      # 8. Run backend tests (with version)
       - name: Run backend tests
         run: npm test
         working-directory: .
+        env:
+          VERSION: ${{ env.VERSION }}
 
+      # 9. Run frontend tests
       - name: Run frontend tests
         run: npm test
         working-directory: client
 
+      # 10. Run linting for backend
       - name: Run linting for backend
         run: npm run lint
         working-directory: .
 
+      # 11. Run linting for frontend
       - name: Run linting for frontend
         run: npm run lint
         working-directory: client
 
+      # 12. Create version.json for frontend
+      - name: Create version.json for frontend
+        run: |
+          VERSION="staging-$(date +'%Y%m%d%H%M%S')-$(git rev-parse --short HEAD)"
+          echo "{ \"version\": \"${VERSION}\", \"commit\": \"$(git rev-parse HEAD)\", \"date\": \"$(date)\" }" > client/public/version.json
+          echo "Build version: $VERSION"
+
+      # 13. Build frontend
       - name: Build frontend
         run: npm run build
         working-directory: client
+
+      # 14. Deploy to Render Staging
+      - name: Deploy to Render Staging
+        if: github.ref == 'refs/heads/staging'
+        uses: JorgeLNJunior/render-deploy@v1.4.6
+        with:
+          service_id: ${{ secrets.RENDER_STAGING_SERVICE_ID }}
+          api_key: ${{ secrets.RENDER_API_KEY }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}

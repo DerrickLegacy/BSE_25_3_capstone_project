@@ -10,6 +10,9 @@ const path = require('path');
 const fs = require('fs');
 const { Pool } = require('pg');
 
+const VERSION = process.env.VERSION || 'staging-unknown';
+console.log(`Server started — version: ${VERSION}`);
+
 const app = express();
 
 // =====================
@@ -133,6 +136,10 @@ app.get('/api/books', async (req, res) => {
     console.error('DB Query Error:', err);
     return res.status(500).json({ error: err.message });
   }
+});
+
+app.get('/api/version', (req, res) => {
+  res.json({ version: VERSION });
 });
 
 // =====================

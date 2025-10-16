@@ -14,6 +14,7 @@ function parseJSON(response) {
 }
 
 function search(query) {
+  console.log('Client Query:', query); // eslint-disable-line no-console
   return fetch(`http://localhost:3001/api/books?firstName=${query}`, {
     accept: 'application/json',
   })

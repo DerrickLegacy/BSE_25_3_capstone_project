@@ -37,7 +37,6 @@ function Search() {
   };
 
   const handleSubmit = (e) => e.preventDefault();
-
   const columnHelper = createColumnHelper();
   const columns = [
     columnHelper.accessor('first_name', { header: 'First Name' }),
@@ -54,7 +53,7 @@ function Search() {
     <Container className="my-4">
       <Row className="mb-3 top10">
         <div className="">
-          <h2 className="jumbotron-heading">Authors Database</h2>
+          <h2 className="jumbotron-heading">Auth ors Database</h2>
         </div>
         <Col className="jumbotron jumbotron-header rounded mb-4 p-4">
           <h2 className="text-primary">

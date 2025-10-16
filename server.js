@@ -94,7 +94,6 @@
 // // export sql pool
 // module.exports = { app, pool };
 
-
 // server.js - defines Express app
 
 require('dotenv').config();
@@ -122,7 +121,9 @@ app.set('port', process.env.PORT || 3001);
 
 // Create Postgres connection pool
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || `postgres://${process.env.PG_USER}:${process.env.PG_PASSWORD}@${process.env.PG_HOST}:${process.env.PG_PORT}/${process.env.PG_NAME}`,
+  connectionString:
+    process.env.DATABASE_URL ||
+    `postgres://${process.env.PG_USER}:${process.env.PG_PASSWORD}@${process.env.PG_HOST}:${process.env.PG_PORT}/${process.env.PG_NAME}`,
   ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false, // SSL only if using Render URL
 });
 
@@ -149,16 +150,32 @@ app.get('/api/books', async (req, res) => {
       rows = result.rows;
     }
 
-    const result = rows.map((entry) => {
+    //   const result = rows.map((entry) => {
+    //     const e = {};
+    //     COLUMNS.forEach((c) => {
+    //       e[c] = entry[c];
+    //     });
+    //     return e;
+    //   });
+
+    //   res.json(result);
+    // } catch (err) {
+    //   console.error('DB Query Error:', err);
+    //   res.status(500).json({ error: err.message });
+    // }
+
+    const mappedResult = rows.map((entry) => {
       const e = {};
-      COLUMNS.forEach((c) => (e[c] = entry[c]));
+      COLUMNS.forEach((c) => {
+        e[c] = entry[c];
+      });
       return e;
     });
 
-    res.json(result);
+    return res.json(mappedResult);
   } catch (err) {
     console.error('DB Query Error:', err);
-    res.status(500).json({ error: err.message });
+    return res.status(500).json({ error: err.message });
   }
 });
 

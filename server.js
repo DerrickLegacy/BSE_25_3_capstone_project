@@ -95,14 +95,13 @@
 // module.exports = { app, pool };
 
 // server.js - defines Express app
-
 require('dotenv').config();
 const express = require('express');
 const { Pool } = require('pg');
 const path = require('path');
 
 // eslint-disable-next-line no-console
-console.log('Loaded DB:', process.env.PG_NAME || process.env.DATABASE_URL);
+console.log('Loaded DB:', process.env.PG_NAME);
 
 const app = express();
 
@@ -119,12 +118,17 @@ app.use((req, res, next) => {
 // Set port from environment or default
 app.set('port', process.env.PORT || 3001);
 
-// Create Postgres connection pool
+// Create Postgres connection pool using PG_* env vars
 const pool = new Pool({
-  connectionString:
-    process.env.DATABASE_URL ||
-    `postgres://${process.env.PG_USER}:${process.env.PG_PASSWORD}@${process.env.PG_HOST}:${process.env.PG_PORT}/${process.env.PG_NAME}`,
-  ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false, // SSL only if using Render URL
+  host: process.env.PG_HOST,
+  user: process.env.PG_USER,
+  password: process.env.PG_PASSWORD,
+  database: process.env.PG_NAME,
+  port: process.env.PG_PORT || 5432,
+  ssl:
+    process.env.NODE_ENV === 'production'
+      ? { rejectUnauthorized: false }
+      : false, // only enable SSL in production
 });
 
 const COLUMNS = ['last_name', 'first_name'];
@@ -150,20 +154,6 @@ app.get('/api/books', async (req, res) => {
       rows = result.rows;
     }
 
-    //   const result = rows.map((entry) => {
-    //     const e = {};
-    //     COLUMNS.forEach((c) => {
-    //       e[c] = entry[c];
-    //     });
-    //     return e;
-    //   });
-
-    //   res.json(result);
-    // } catch (err) {
-    //   console.error('DB Query Error:', err);
-    //   res.status(500).json({ error: err.message });
-    // }
-
     const mappedResult = rows.map((entry) => {
       const e = {};
       COLUMNS.forEach((c) => {
@@ -183,7 +173,6 @@ app.get('/api/books', async (req, res) => {
 const buildPath = path.join(__dirname, 'client', 'build');
 app.use(express.static(buildPath));
 
-// Keep API routes above this!
 // Catch-all to serve index.html for React Router
 app.get(/.*/, (req, res) => {
   res.sendFile(path.join(buildPath, 'index.html'));

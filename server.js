@@ -1,4 +1,6 @@
-// server.js – Express server with PostgreSQL connection and sample data loader
+// =====================
+// server.js – Express server with PostgreSQL connection
+// =====================
 
 // Load environment variables
 require('dotenv').config();
@@ -44,6 +46,10 @@ pool.on('error', (err) => {
   process.exit(-1);
 });
 
+// =====================
+// Sample Data Loader (runs only once)
+// =====================
+
 let sampleDataLoaded = false;
 
 const loadSampleDataIfEmpty = async () => {
@@ -51,27 +57,55 @@ const loadSampleDataIfEmpty = async () => {
   const client = await pool.connect();
 
   try {
+    // Check if table exists
+    const tableCheck = await client.query(`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables 
+        WHERE table_name = 'authors'
+      );
+    `);
+
+    if (!tableCheck.rows[0].exists) {
+      console.log('Table "authors" does not exist. Creating table...');
+      await client.query(`
+        CREATE TABLE authors (
+          id SERIAL PRIMARY KEY,
+          first_name VARCHAR(255) NOT NULL,
+          middle_name VARCHAR(255),
+          last_name VARCHAR(255) NOT NULL
+        );
+      `);
+    }
+
+    // Check if table has data
     const result = await client.query('SELECT COUNT(*) FROM authors');
     const count = parseInt(result.rows[0].count, 10);
 
     if (count === 0) {
-      console.log('Loading sample data from sample.sql');
-
       const sqlFilePath = path.join(__dirname, 'sample.sql');
-      const sql = fs.readFileSync(sqlFilePath, 'utf8');
-
-      await client.query(sql);
-      console.log(`Sample data of  ${count} record(s) loaded successfully`);
+      if (fs.existsSync(sqlFilePath)) {
+        console.log('Loading sample data from sample.sql...');
+        const sql = fs.readFileSync(sqlFilePath, 'utf8');
+        await client.query(sql);
+        console.log('Sample data loaded successfully!');
+      } else {
+        console.warn('sample.sql file not found — skipping sample data load.');
+      }
+    } else {
+      console.warn(`Table already has ${count} records, skipping sample load.`);
     }
+
     sampleDataLoaded = true;
   } catch (err) {
-    console.error('Error checking or loading sample data:', err.stack);
+    console.error('Error checking/loading sample data:', err.stack);
   } finally {
     client.release();
   }
 };
 
-loadSampleDataIfEmpty();
+// =====================
+// API Endpoints
+// =====================
 
 const COLUMNS = ['last_name', 'first_name'];
 
@@ -83,28 +117,27 @@ app.get('/api/books', async (req, res) => {
   const queryString =
     firstName === '*'
       ? 'SELECT * FROM authors'
-      : `SELECT * FROM authors WHERE first_name ~ '^${firstName}'`;
+      : `SELECT * FROM authors WHERE first_name ~* '^${firstName}'`; // case-insensitive regex
 
   try {
     const { rows } = await pool.query(queryString);
-
-    if (rows.length > 0) {
-      const filtered = rows.map((entry) => {
-        const e = {};
-        COLUMNS.forEach((c) => {
-          e[c] = entry[c];
-        });
-        return e;
+    const filtered = rows.map((entry) => {
+      const e = {};
+      COLUMNS.forEach((c) => {
+        e[c] = entry[c];
       });
-      return res.json(filtered);
-    }
-
-    return res.json([]);
+      return e;
+    });
+    return res.json(filtered);
   } catch (err) {
     console.error('DB Query Error:', err);
     return res.status(500).json({ error: err.message });
   }
 });
+
+// =====================
+// Serve React Frontend
+// =====================
 
 const buildPath = path.join(__dirname, 'client', 'build');
 app.use(express.static(buildPath));
@@ -112,12 +145,20 @@ app.use(express.static(buildPath));
 app.get(/.*/, (req, res) => {
   res.sendFile(path.join(buildPath, 'index.html'));
 });
-app.listen(app.get('port'), () => {
-  console.log(`Server running on port ${app.get('port')}`);
-});
 
 // =====================
-// Export for testing / other modules
+// Start Server (only when run directly)
 // =====================
 
-module.exports = { app, pool };
+if (require.main === module) {
+  loadSampleDataIfEmpty().then(() => {
+    app.listen(app.get('port'), () => {
+      console.log(`✅ Server running on port ${app.get('port')}`);
+    });
+  });
+}
+
+// =====================
+// Export for testing or reuse
+// =====================
+module.exports = { app, pool, loadSampleDataIfEmpty };

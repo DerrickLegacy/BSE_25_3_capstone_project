@@ -1,7 +1,7 @@
 // app.js
 require('dotenv').config();
 const express = require('express');
-const mysql = require('mysql2');
+const { Pool } = require('pg');
 const path = require('path');
 
 const app = express();
@@ -24,46 +24,81 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
-// MySQL pool
-const pool = mysql.createPool({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  port: process.env.DB_PORT || 3306,
+// postgre pool
+const pool = new Pool({
+  host: process.env.PG_HOST,
+  user: process.env.PG_USER,
+  password: process.env.PG_PASSWORD,
+  database: process.env.PG_NAME,
+  port: process.env.PG_PORT || 5432,
 });
 
 const COLUMNS = ['last_name', 'first_name'];
 
 // API endpoint
-app.get('/api/books', (req, res) => {
+// app.get('/api/books', (req, res) => {
+//   const { firstName } = req.query;
+
+//   if (!firstName) {
+//     return res.json({ error: 'Missing required parameters' });
+//   }
+
+//   const queryString =
+//     firstName === '*'
+//       ? 'SELECT * FROM authors'
+//       // : `SELECT * FROM authors WHERE first_name REGEXP '^${firstName}'`;
+//       : `SELECT * FROM authors WHERE first_name ~* '^${firstName}'`;
+
+
+//   return pool.query(queryString, (err, rows) => {
+//     if (err) throw err;
+
+//     if (rows.length > 0) {
+//       const result = rows.map((entry) => {
+//         const e = {};
+//         COLUMNS.forEach((c) => {
+//           e[c] = entry[c];
+//         });
+//         return e;
+//       });
+//       res.json(result);
+//       return;
+//     }
+//     res.json([]);
+//   });
+// });
+app.get('/api/books', async (req, res) => {
   const { firstName } = req.query;
 
   if (!firstName) {
     return res.json({ error: 'Missing required parameters' });
   }
 
-  const queryString =
-    firstName === '*'
-      ? 'SELECT * FROM authors'
-      : `SELECT * FROM authors WHERE first_name REGEXP '^${firstName}'`;
-
-  return pool.query(queryString, (err, rows) => {
-    if (err) throw err;
-
-    if (rows.length > 0) {
-      const result = rows.map((entry) => {
-        const e = {};
-        COLUMNS.forEach((c) => {
-          e[c] = entry[c];
-        });
-        return e;
-      });
-      res.json(result);
-      return;
+  try {
+    let rows;
+    if (firstName === '*') {
+      const result = await pool.query('SELECT * FROM authors');
+      rows = result.rows;
+    } else {
+      const result = await pool.query(
+        'SELECT * FROM authors WHERE first_name ~* $1',
+        [`^${firstName}`]
+      );
+      rows = result.rows;
     }
-    res.json([]);
-  });
+
+    const result = rows.map((entry) => {
+      const e = {};
+      COLUMNS.forEach((c) => (e[c] = entry[c]));
+      return e;
+    });
+
+    res.json(result);
+  } catch (err) {
+    console.error('DB Query Error:', err);
+    res.status(500).json({ error: err.message });
+  }
 });
 
-module.exports = app; // 👈 Export only the app
+
+module.exports = app; 

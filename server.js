@@ -4,11 +4,11 @@
 
 // Load environment variables
 require('dotenv').config();
-
 const express = require('express');
-const path = require('path');
-const fs = require('fs');
 const { Pool } = require('pg');
+const path = require('path');
+
+const fs = require('fs');
 
 const VERSION = process.env.VERSION || 'staging-unknown';
 console.log(`Server started — version: ${VERSION}`);
@@ -42,6 +42,10 @@ const pool = new Pool({
   password: process.env.PG_PASSWORD,
   database: process.env.PG_NAME,
   port: process.env.PG_PORT || 5432,
+  ssl:
+    process.env.NODE_ENV === 'production'
+      ? { rejectUnauthorized: false }
+      : false, // only enable SSL in production
 });
 
 pool.on('error', (err) => {

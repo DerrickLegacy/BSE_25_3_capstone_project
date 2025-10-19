@@ -104,11 +104,21 @@ jobs:
         run: npm run build
         working-directory: client
 
-      # # 14. Deploy to Render Staging
-      # - name: Deploy to Render Staging
-      #   if: github.ref == 'refs/heads/staging'
+      # 14. Deploy to Render Staging
+      - name: Deploy to Render (Staging)
+        if: success() && github.ref == 'refs/heads/staging'
+        uses: JorgeLNJunior/render-deploy@v1.4.6
+        with:
+          service_id: ${{ secrets.RENDER_SERVICE_ID }}
+          api_key: ${{ secrets.RENDER_API_KEY }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+    
+      #15. Deploy Production
+      # - name: Deploy to Render (Production)
+      #   if: success() && github.ref == 'refs/heads/main'
       #   uses: JorgeLNJunior/render-deploy@v1.4.6
       #   with:
-      #     service_id: ${{ secrets.RENDER_STAGING_SERVICE_ID }}
+      #     service_id: ${{ secrets.RENDER_PROD_SERVICE_ID }}
       #     api_key: ${{ secrets.RENDER_API_KEY }}
       #     github_token: ${{ secrets.GITHUB_TOKEN }}
+

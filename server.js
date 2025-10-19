@@ -67,7 +67,7 @@
 //     // Check if table exists
 //     const tableCheck = await client.query(`
 //       SELECT EXISTS (
-//         SELECT FROM information_schema.tables 
+//         SELECT FROM information_schema.tables
 //         WHERE table_name = 'authors'
 //       );
 //     `);
@@ -173,7 +173,6 @@
 // // Export for testing or reuse
 // // =====================
 // module.exports = { app, pool, loadSampleDataIfEmpty };
-
 
 // // =====================
 // // server.js – Express server with PostgreSQL connection
@@ -244,7 +243,7 @@
 //     // Check if table exists
 //     const tableCheck = await client.query(`
 //       SELECT EXISTS (
-//         SELECT FROM information_schema.tables 
+//         SELECT FROM information_schema.tables
 //         WHERE table_name = 'authors'
 //       );
 //     `);
@@ -350,8 +349,6 @@
 // // Export for testing or reuse
 // // =====================
 // module.exports = { app, pool, loadSampleDataIfEmpty };
-
-
 
 // =====================
 // server.js – Express server with PostgreSQL connection
@@ -446,7 +443,9 @@ const loadSampleDataIfEmpty = async () => {
         console.warn('sample.sql file not found — skipping sample data load.');
       }
     } else {
-      console.log(`Authors table already has ${count} records — skipping load.`);
+      console.log(
+        `Authors table already has ${count} records — skipping load.`
+      );
     }
 
     sampleDataLoaded = true;
@@ -476,7 +475,10 @@ app.get('/api/books', async (req, res) => {
     const { rows } = await pool.query(queryString);
     const filtered = rows.map((entry) => {
       const e = {};
-      COLUMNS.forEach((c) => (e[c] = entry[c]));
+      // COLUMNS.forEach((c) => (e[c] = entry[c]));
+      COLUMNS.forEach((c) => {
+        e[c] = entry[c];
+      });
       return e;
     });
     return res.json(filtered);

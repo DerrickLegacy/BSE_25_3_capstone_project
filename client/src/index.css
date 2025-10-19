@@ -5,8 +5,8 @@
 }
 * {
   font-size: 16px;
-  font-weight: 300;
-  line-height: 1.5;
+  font-weight: 400;
+  line-height: 1.6;
 }
 
 .btn.btn-ll5 {
@@ -41,23 +41,256 @@
   font-weight: 300;
 }
 
-h1,
-h2,
-h3,
-h4,
-h5,
-h6,
-strong,
-b {
-  font-weight: 300;
+h1 {
+  font-size: 2.2rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
 }
 
-h1,
-h2,
+h2 {
+  font-size: 1.8rem;
+  font-weight: 500;
+  margin-bottom: 1.25rem;
+}
+
 h3 {
+  font-size: 1.5rem;
+  font-weight: 500;
   margin-bottom: 1rem;
+}
+
+h4 {
+  font-size: 1.3rem;
+  font-weight: 500;
+  margin-bottom: 1rem;
+}
+
+h5 {
+  font-size: 1.2rem;
+  font-weight: 500;
+  margin-bottom: 0.75rem;
+}
+
+h6 {
+  font-size: 1.1rem;
+  font-weight: 500;
+  margin-bottom: 0.75rem;
+}
+
+strong,
+b {
+  font-weight: 600;
 }
 
 .top10 {
   margin-top: 10px;
+}
+
+/* Notes App Specific Styles */
+.card-title {
+  font-size: 1.25rem !important;
+  font-weight: 500 !important;
+  margin-bottom: 0.75rem !important;
+}
+
+.card-text {
+  font-size: 1rem !important;
+  line-height: 1.6 !important;
+  margin-bottom: 1rem !important;
+}
+
+.btn {
+  font-size: 0.95rem !important;
+  font-weight: 500 !important;
+  padding: 0.6rem 1rem !important;
+}
+
+.btn-sm {
+  font-size: 0.875rem !important;
+  padding: 0.4rem 0.8rem !important;
+}
+
+.modal-title {
+  font-size: 1.5rem !important;
+  font-weight: 500 !important;
+}
+
+.form-label {
+  font-size: 1.1rem !important;
+  font-weight: 500 !important;
+  margin-bottom: 0.5rem !important;
+}
+
+.form-control {
+  font-size: 1rem !important;
+  padding: 0.6rem 0.8rem !important;
+}
+
+.form-control::placeholder {
+  font-size: 0.95rem !important;
+  opacity: 0.6;
+}
+
+.text-muted {
+  font-size: 0.9rem !important;
+}
+
+.navbar-brand {
+  font-size: 1.3rem !important;
+  font-weight: 600 !important;
+}
+
+/* Make the "No notes yet" message larger */
+.text-center h4 {
+  font-size: 1.5rem !important;
+}
+
+.text-center p {
+  font-size: 1.1rem !important;
+}
+
+/* Footer text */
+footer {
+  font-size: 0.9rem !important;
+}
+
+/* Modal body text */
+.modal-body p {
+  font-size: 1rem !important;
+  line-height: 1.6 !important;
+}
+
+/* Date text in cards */
+small.text-muted {
+  font-size: 0.85rem !important;
+} /* 
+Edit/Create Modal Specific Styles */
+.modal textarea.form-control {
+  font-size: 1rem !important;
+  padding: 0.75rem !important;
+  line-height: 1.5 !important;
+  min-height: 150px !important;
+}
+
+.modal input.form-control {
+  font-size: 1rem !important;
+  padding: 0.75rem !important;
+  height: auto !important;
+}
+
+.modal .form-label {
+  font-size: 1.1rem !important;
+  font-weight: 500 !important;
+  margin-bottom: 0.5rem !important;
+}
+
+.modal .btn {
+  font-size: 0.95rem !important;
+  padding: 0.6rem 1.2rem !important;
+  margin: 0.25rem !important;
+}
+
+.modal-header .modal-title {
+  font-size: 1.5rem !important;
+  font-weight: 500 !important;
+}
+
+.modal-body {
+  padding: 1.5rem !important;
+}
+
+.modal-footer {
+  padding: 1rem 1.5rem !important;
+}
+
+/* Delete confirmation modal text */
+.modal-body p {
+  font-size: 1rem !important;
+  line-height: 1.5 !important;
+  margin-bottom: 1rem !important;
+}
+
+/* Form placeholders in modals */
+.modal .form-control::placeholder {
+  font-size: 0.95rem !important;
+  opacity: 0.6;
+}
+
+/* Close button */
+.modal .btn-close {
+  font-size: 1rem !important;
+  padding: 0.5rem !important;
+}
+/* Responsive Design for Different Screen Sizes */
+@media (max-width: 768px) {
+  /* Mobile devices */
+  .card-title { font-size: 1.1rem !important; }
+  .card-text { font-size: 0.95rem !important; }
+  .btn { font-size: 0.9rem !important; padding: 0.5rem 0.8rem !important; }
+  .btn-sm { font-size: 0.85rem !important; padding: 0.4rem 0.7rem !important; }
+  .modal-title { font-size: 1.3rem !important; }
+  .form-label { font-size: 1rem !important; }
+  .form-control { font-size: 0.95rem !important; padding: 0.5rem 0.7rem !important; }
+  .navbar-brand { font-size: 1.2rem !important; }
+}
+
+@media (max-width: 480px) {
+  /* Small mobile devices */
+  .card-title { font-size: 1rem !important; }
+  .card-text { font-size: 0.9rem !important; }
+  .btn { font-size: 0.85rem !important; padding: 0.4rem 0.7rem !important; }
+  .btn-sm { font-size: 0.8rem !important; padding: 0.3rem 0.6rem !important; }
+  .modal-title { font-size: 1.2rem !important; }
+  .form-label { font-size: 0.95rem !important; }
+  .form-control { font-size: 0.9rem !important; padding: 0.4rem 0.6rem !important; }
+  .navbar-brand { font-size: 1.1rem !important; }
+  
+  .container { padding: 0 10px !important; }
+  .modal-dialog { margin: 10px !important; }
+}
+
+/* Large screens - keep current sizes */
+@media (min-width: 1200px) {
+  .container {
+    max-width: 1140px;
+  }
+}/* 
+Ensure proper scaling on all devices */
+html {
+  -webkit-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+*, *::before, *::after {
+  box-sizing: inherit;
+}
+
+/* Prevent horizontal scrolling */
+.container-fluid, .container {
+  overflow-x: hidden;
+}
+
+/* Make sure modals are responsive */
+.modal-dialog {
+  max-width: 95vw;
+  margin: 1rem auto;
+}
+
+@media (min-width: 576px) {
+  .modal-dialog {
+    max-width: 500px;
+  }
+}
+
+@media (min-width: 992px) {
+  .modal-dialog {
+    max-width: 800px;
+  }
 }

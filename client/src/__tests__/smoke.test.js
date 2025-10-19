@@ -1,14 +1,24 @@
 import reducer from '../Reducers';
 
-test('reducer initializes with empty searchData', () => {
+test('reducer initializes with empty notes', () => {
   const state = reducer(undefined, { type: '@@INIT' });
-  expect(state.searchData).toEqual([]);
+  expect(state.notes).toEqual([]);
+  expect(state.currentNote).toBeNull();
 });
 
-test('reducer handles CHANGE_SEARCH_DATA', () => {
+test('reducer handles SET_NOTES', () => {
   const next = reducer(undefined, {
-    type: 'CHANGE_SEARCH_DATA',
-    data: [{ first_name: 'Ada' }],
+    type: 'SET_NOTES',
+    payload: [{ id: 1, title: 'Test Note', content: 'Test content' }],
   });
-  expect(next.searchData).toEqual([{ first_name: 'Ada' }]);
+  expect(next.notes).toEqual([{ id: 1, title: 'Test Note', content: 'Test content' }]);
+});
+
+test('reducer handles ADD_NOTE', () => {
+  const initialState = { notes: [], currentNote: null };
+  const next = reducer(initialState, {
+    type: 'ADD_NOTE',
+    payload: { id: 1, title: 'New Note', content: 'New content' },
+  });
+  expect(next.notes).toEqual([{ id: 1, title: 'New Note', content: 'New content' }]);
 });

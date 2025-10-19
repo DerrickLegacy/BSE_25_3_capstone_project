@@ -221,3 +221,103 @@ Edit/Create Modal Specific Styles */
   font-size: 1.5rem !important;
   padding: 1rem !important;
 }
+/* Responsive Design for Different Screen Sizes */
+@media (max-width: 768px) {
+  /* Mobile devices */
+  * {
+    font-size: 18px !important;
+  }
+  
+  h1 { font-size: 2.2rem !important; }
+  h2 { font-size: 1.8rem !important; }
+  h3 { font-size: 1.6rem !important; }
+  h4 { font-size: 1.4rem !important; }
+  h5 { font-size: 1.2rem !important; }
+  
+  .card-title { font-size: 1.4rem !important; }
+  .card-text { font-size: 1.2rem !important; }
+  .btn { font-size: 1.1rem !important; padding: 0.8rem 1.2rem !important; }
+  .btn-sm { font-size: 1rem !important; padding: 0.6rem 1rem !important; }
+  .modal-title { font-size: 1.8rem !important; }
+  .form-label { font-size: 1.3rem !important; }
+  .form-control { font-size: 1.2rem !important; padding: 0.8rem 1rem !important; }
+  .navbar-brand { font-size: 1.6rem !important; }
+}
+
+@media (max-width: 480px) {
+  /* Small mobile devices */
+  * {
+    font-size: 16px !important;
+  }
+  
+  h1 { font-size: 2rem !important; }
+  h2 { font-size: 1.6rem !important; }
+  h3 { font-size: 1.4rem !important; }
+  h4 { font-size: 1.2rem !important; }
+  h5 { font-size: 1.1rem !important; }
+  
+  .card-title { font-size: 1.2rem !important; }
+  .card-text { font-size: 1.1rem !important; }
+  .btn { font-size: 1rem !important; padding: 0.7rem 1rem !important; }
+  .btn-sm { font-size: 0.9rem !important; padding: 0.5rem 0.8rem !important; }
+  .modal-title { font-size: 1.6rem !important; }
+  .form-label { font-size: 1.2rem !important; }
+  .form-control { font-size: 1.1rem !important; padding: 0.7rem 0.9rem !important; }
+  .navbar-brand { font-size: 1.4rem !important; }
+  
+  .container { padding: 0 10px !important; }
+  .modal-dialog { margin: 10px !important; }
+}
+
+/* High DPI / Retina Display Adjustments */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  * {
+    font-size: 20px !important;
+  }
+}
+
+/* Large screens - keep current sizes */
+@media (min-width: 1200px) {
+  .container {
+    max-width: 1140px;
+  }
+}/* 
+Ensure proper scaling on all devices */
+html {
+  -webkit-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+*, *::before, *::after {
+  box-sizing: inherit;
+}
+
+/* Prevent horizontal scrolling */
+.container-fluid, .container {
+  overflow-x: hidden;
+}
+
+/* Make sure modals are responsive */
+.modal-dialog {
+  max-width: 95vw;
+  margin: 1rem auto;
+}
+
+@media (min-width: 576px) {
+  .modal-dialog {
+    max-width: 500px;
+  }
+}
+
+@media (min-width: 992px) {
+  .modal-dialog {
+    max-width: 800px;
+  }
+}

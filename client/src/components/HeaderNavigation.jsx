@@ -16,16 +16,14 @@
 
 // export default HeaderNavigation;
 
-// as a function component
 import React from 'react';
 import { Navbar, NavbarBrand } from 'reactstrap';
-import logo from './logo.png';
 
 function HeaderNavigation() {
   return (
-    <Navbar href="/">
-      <NavbarBrand>
-        <img alt="" src={logo} />
+    <Navbar className="bg-primary" dark expand="md">
+      <NavbarBrand href="/" className="text-white">
+        📝 Notes App
       </NavbarBrand>
     </Navbar>
   );

@@ -22,22 +22,19 @@
 // export default App;
 
 import React from 'react';
-import { Container } from 'reactstrap';
 
 import HeaderNavigation from './components/HeaderNavigation';
-import ConnectedSearch from './components/Search';
+import Notes from './components/Notes';
+import Footer from './components/Footer';
 
 import './index.css';
-import Footer from './components/Footer';
 
 function App() {
   return (
-    <div className="App my-4">
-      <Container>
-        <HeaderNavigation />
-        <ConnectedSearch className="jumbotron" />
-        <Footer />
-      </Container>
+    <div className="App">
+      <HeaderNavigation />
+      <Notes />
+      <Footer />
     </div>
   );
 }

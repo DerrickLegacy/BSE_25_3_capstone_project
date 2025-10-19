@@ -1,21 +1,20 @@
-/* eslint-disable prettier/prettier */
-// React VersionFooter component
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 function Footer() {
-    const [version, setVersion] = useState('');
+  const [version, setVersion] = useState('');
 
-    useEffect(() => {
-        fetch('/version.json')
-            // eslint-disable-next-line prettier/prettier
-            .then((res) => {
-                console.log(res.json)
-            })
-            .then((data) => setVersion(data.version))
-            .catch(() => setVersion('staging-unknown'));
-    }, []);
+  useEffect(() => {
+    fetch('/api/version')
+      .then((res) => res.json())
+      .then((data) => setVersion(data.version))
+      .catch(() => setVersion('unknown'));
+  }, []);
 
-    return <footer>Version: {version}</footer>;
+  return (
+    <footer className="text-center py-3 mt-5 border-top">
+      <small className="text-muted">Notes App v{version}</small>
+    </footer>
+  );
 }
 
 export default Footer;

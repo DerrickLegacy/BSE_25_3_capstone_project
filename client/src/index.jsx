@@ -6,16 +6,14 @@ import { Provider } from 'react-redux';
 import createSagaMiddleware from 'redux-saga';
 import App from './App';
 import mainReducer from './Reducers';
-import watchFetchSearchData from './Sagas';
+import watchNotes from './Sagas';
 
 import './index.css';
 import 'bootstrap/dist/css/bootstrap.css';
 
 const sagaMiddleware = createSagaMiddleware();
 const store = createStore(mainReducer, applyMiddleware(sagaMiddleware));
-sagaMiddleware.run(watchFetchSearchData);
-
-store.dispatch({ type: 'FETCH_SEARCH_DATA', payload: { firstName: '*' } });
+sagaMiddleware.run(watchNotes);
 
 const container = document.getElementById('root');
 const root = createRoot(container);

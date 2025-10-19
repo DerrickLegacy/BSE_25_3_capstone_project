@@ -1,355 +1,3 @@
-// // =====================
-// // server.js – Express server with PostgreSQL connection
-// // =====================
-
-// // Load environment variables
-// require('dotenv').config();
-// const express = require('express');
-// const { Pool } = require('pg');
-// const path = require('path');
-
-// const fs = require('fs');
-
-// const VERSION = process.env.VERSION || 'staging-unknown';
-// console.log(`Server started — version: ${VERSION}`);
-
-// const app = express();
-
-// // =====================
-// // Middleware
-// // =====================
-
-// // Enable CORS
-// app.use((req, res, next) => {
-//   res.header('Access-Control-Allow-Origin', '*');
-//   res.header(
-//     'Access-Control-Allow-Headers',
-//     'Origin, X-Requested-With, Content-Type, Accept'
-//   );
-//   next();
-// });
-
-// // Set port from environment or default
-// app.set('port', process.env.PORT || 3001);
-
-// // =====================
-// // PostgreSQL Pool Setup
-// // =====================
-
-// const pool = new Pool({
-//   host: process.env.PG_HOST,
-//   user: process.env.PG_USER,
-//   password: process.env.PG_PASSWORD,
-//   database: process.env.PG_NAME,
-//   port: process.env.PG_PORT || 5432,
-//   ssl:
-//     process.env.NODE_ENV === 'production'
-//       ? { rejectUnauthorized: false }
-//       : false, // only enable SSL in production
-// });
-
-// pool.on('error', (err) => {
-//   console.error('Unexpected error on idle client', err);
-//   process.exit(-1);
-// });
-
-// // =====================
-// // Sample Data Loader (runs only once)
-// // =====================
-
-// let sampleDataLoaded = false;
-
-// const loadSampleDataIfEmpty = async () => {
-//   if (sampleDataLoaded) return;
-//   const client = await pool.connect();
-
-//   try {
-//     // Check if table exists
-//     const tableCheck = await client.query(`
-//       SELECT EXISTS (
-//         SELECT FROM information_schema.tables
-//         WHERE table_name = 'authors'
-//       );
-//     `);
-
-//     if (!tableCheck.rows[0].exists) {
-//       console.log('Table "authors" does not exist. Creating table...');
-//       await client.query(`
-//         CREATE TABLE authors (
-//           id SERIAL PRIMARY KEY,
-//           first_name VARCHAR(255) NOT NULL,
-//           middle_name VARCHAR(255),
-//           last_name VARCHAR(255) NOT NULL
-//         );
-//       `);
-//     }
-
-//     // Check if table has data
-//     const result = await client.query('SELECT COUNT(*) FROM authors');
-//     const count = parseInt(result.rows[0].count, 10);
-
-//     if (count === 0) {
-//       const sqlFilePath = path.join(__dirname, 'sample.sql');
-//       if (fs.existsSync(sqlFilePath)) {
-//         console.log('Loading sample data from sample.sql...');
-//         const sql = fs.readFileSync(sqlFilePath, 'utf8');
-//         await client.query(sql);
-//         console.log('Sample data loaded successfully!');
-//       } else {
-//         console.warn('sample.sql file not found — skipping sample data load.');
-//       }
-//     } else {
-//       console.warn(`Table already has ${count} records, skipping sample load.`);
-//     }
-
-//     sampleDataLoaded = true;
-//   } catch (err) {
-//     console.error('Error checking/loading sample data:', err.stack);
-//   } finally {
-//     client.release();
-//   }
-// };
-
-// // =====================
-// // API Endpoints
-// // =====================
-
-// const COLUMNS = ['last_name', 'first_name'];
-
-// app.get('/api/books', async (req, res) => {
-//   const { firstName } = req.query;
-
-//   if (!firstName) return res.json({ error: 'Missing required parameters' });
-
-//   const queryString =
-//     firstName === '*'
-//       ? 'SELECT * FROM authors'
-//       : `SELECT * FROM authors WHERE first_name ~* '^${firstName}'`; // case-insensitive regex
-
-//   try {
-//     const { rows } = await pool.query(queryString);
-//     const filtered = rows.map((entry) => {
-//       const e = {};
-//       COLUMNS.forEach((c) => {
-//         e[c] = entry[c];
-//       });
-//       return e;
-//     });
-//     return res.json(filtered);
-//   } catch (err) {
-//     console.error('DB Query Error:', err);
-//     return res.status(500).json({ error: err.message });
-//   }
-// });
-
-// app.get('/api/version', (req, res) => {
-//   res.json({ version: VERSION });
-// });
-
-// // =====================
-// // Serve React Frontend
-// // =====================
-
-// const buildPath = path.join(__dirname, 'client', 'build');
-// app.use(express.static(buildPath));
-
-// app.get(/.*/, (req, res) => {
-//   res.sendFile(path.join(buildPath, 'index.html'));
-// });
-
-// // =====================
-// // Start Server (only when run directly)
-// // =====================
-
-// if (require.main === module) {
-//   loadSampleDataIfEmpty().then(() => {
-//     app.listen(app.get('port'), () => {
-//       console.log(`✅ Server running on port ${app.get('port')}`);
-//     });
-//   });
-// }
-
-// // =====================
-// // Export for testing or reuse
-// // =====================
-// module.exports = { app, pool, loadSampleDataIfEmpty };
-
-// // =====================
-// // server.js – Express server with PostgreSQL connection
-// // =====================
-
-// // Load environment variables
-// require('dotenv').config();
-// const express = require('express');
-// const { Pool } = require('pg');
-// const path = require('path');
-
-// const fs = require('fs');
-
-// const VERSION = process.env.VERSION || 'staging-unknown';
-// console.log(`Server started — version: ${VERSION}`);
-
-// const app = express();
-
-// // =====================
-// // Middleware
-// // =====================
-
-// // Enable CORS
-// app.use((req, res, next) => {
-//   res.header('Access-Control-Allow-Origin', '*');
-//   res.header(
-//     'Access-Control-Allow-Headers',
-//     'Origin, X-Requested-With, Content-Type, Accept'
-//   );
-//   next();
-// });
-
-// // Set port from environment or default
-// app.set('port', process.env.PORT || 3001);
-
-// // =====================
-// // PostgreSQL Pool Setup
-// // =====================
-
-// const pool = new Pool({
-//   host: process.env.PG_HOST,
-//   user: process.env.PG_USER,
-//   password: process.env.PG_PASSWORD,
-//   database: process.env.PG_NAME,
-//   port: process.env.PG_PORT || 5432,
-//   ssl:
-//     process.env.NODE_ENV === 'production'
-//       ? { rejectUnauthorized: false }
-//       : false, // only enable SSL in production
-// });
-
-// pool.on('error', (err) => {
-//   console.error('Unexpected error on idle client', err);
-//   process.exit(-1);
-// });
-
-// // =====================
-// // Sample Data Loader (runs only once)
-// // =====================
-
-// let sampleDataLoaded = false;
-
-// const loadSampleDataIfEmpty = async () => {
-//   if (sampleDataLoaded) return;
-//   const client = await pool.connect();
-
-//   try {
-//     // Check if table exists
-//     const tableCheck = await client.query(`
-//       SELECT EXISTS (
-//         SELECT FROM information_schema.tables
-//         WHERE table_name = 'authors'
-//       );
-//     `);
-
-//     if (!tableCheck.rows[0].exists) {
-//       console.log('Table "authors" does not exist. Creating table...');
-//       await client.query(`
-//         CREATE TABLE authors (
-//           id SERIAL PRIMARY KEY,
-//           first_name VARCHAR(255) NOT NULL,
-//           middle_name VARCHAR(255),
-//           last_name VARCHAR(255) NOT NULL
-//         );
-//       `);
-//     }
-
-//     // Check if table has data
-//     const result = await client.query('SELECT COUNT(*) FROM authors');
-//     const count = parseInt(result.rows[0].count, 10);
-
-//     if (count === 0) {
-//       const sqlFilePath = path.join(__dirname, 'sample.sql');
-//       if (fs.existsSync(sqlFilePath)) {
-//         console.log('Loading sample data from sample.sql...');
-//         const sql = fs.readFileSync(sqlFilePath, 'utf8');
-//         await client.query(sql);
-//         console.log('Sample data loaded successfully!');
-//       } else {
-//         console.warn('sample.sql file not found — skipping sample data load.');
-//       }
-//     } else {
-//       console.warn(`Table already has ${count} records, skipping sample load.`);
-//     }
-
-//     sampleDataLoaded = true;
-//   } catch (err) {
-//     console.error('Error checking/loading sample data:', err.stack);
-//   } finally {
-//     client.release();
-//   }
-// };
-
-// // =====================
-// // API Endpoints
-// // =====================
-
-// const COLUMNS = ['last_name', 'first_name'];
-
-// app.get('/api/books', async (req, res) => {
-//   const { firstName } = req.query;
-
-//   if (!firstName) return res.json({ error: 'Missing required parameters' });
-
-//   const queryString =
-//     firstName === '*'
-//       ? 'SELECT * FROM authors'
-//       : `SELECT * FROM authors WHERE first_name ~* '^${firstName}'`; // case-insensitive regex
-
-//   try {
-//     const { rows } = await pool.query(queryString);
-//     const filtered = rows.map((entry) => {
-//       const e = {};
-//       COLUMNS.forEach((c) => {
-//         e[c] = entry[c];
-//       });
-//       return e;
-//     });
-//     return res.json(filtered);
-//   } catch (err) {
-//     console.error('DB Query Error:', err);
-//     return res.status(500).json({ error: err.message });
-//   }
-// });
-
-// app.get('/api/version', (req, res) => {
-//   res.json({ version: VERSION });
-// });
-
-// // =====================
-// // Serve React Frontend
-// // =====================
-
-// const buildPath = path.join(__dirname, 'client', 'build');
-// app.use(express.static(buildPath));
-
-// app.get(/.*/, (req, res) => {
-//   res.sendFile(path.join(buildPath, 'index.html'));
-// });
-
-// // =====================
-// // Start Server (only when run directly)
-// // =====================
-
-// if (require.main === module) {
-//   loadSampleDataIfEmpty().then(() => {
-//     app.listen(app.get('port'), () => {
-//       console.log(`✅ Server running on port ${app.get('port')}`);
-//     });
-//   });
-// }
-
-// // =====================
-// // Export for testing or reuse
-// // =====================
-// module.exports = { app, pool, loadSampleDataIfEmpty };
-
 // =====================
 // server.js – Express server with PostgreSQL connection
 // =====================
@@ -359,9 +7,8 @@ require('dotenv').config();
 const express = require('express');
 const { Pool } = require('pg');
 const path = require('path');
-const fs = require('fs');
 
-const VERSION = process.env.VERSION || 'unknown';
+const VERSION = process.env.VERSION || 'latest';
 const ENV = process.env.NODE_ENV || 'development';
 console.log(`Server starting — environment: ${ENV}, version: ${VERSION}`);
 
@@ -378,11 +25,15 @@ app.use((req, res, next) => {
     'Access-Control-Allow-Headers',
     'Origin, X-Requested-With, Content-Type, Accept'
   );
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   next();
 });
 
+// Parse JSON bodies
+app.use(express.json());
+
 // Set port
-app.set('port', process.env.PORT || 3001);
+app.set('port', process.env.PORT || 3004);
 
 // =====================
 // PostgreSQL Pool Setup
@@ -405,52 +56,50 @@ pool.on('error', (err) => {
 });
 
 // =====================
-// Sample Data Loader
+// Database Setup
 // =====================
 
-let sampleDataLoaded = false;
+let dbInitialized = false;
 
-const loadSampleDataIfEmpty = async () => {
-  if (sampleDataLoaded) return;
-  if (ENV === 'production') return; // skip auto-loading in production
+const initializeDatabase = async () => {
+  if (dbInitialized) return;
+  if (ENV === 'production') return; // skip auto-initialization in production
 
   const client = await pool.connect();
   try {
-    // Create table if missing
+    // Create notes table if missing
     await client.query(`
-      CREATE TABLE IF NOT EXISTS authors (
+      CREATE TABLE IF NOT EXISTS notes (
         id SERIAL PRIMARY KEY,
-        first_name VARCHAR(255) NOT NULL,
-        middle_name VARCHAR(255),
-        last_name VARCHAR(255) NOT NULL,
+        title VARCHAR(255) NOT NULL,
+        content TEXT,
         created_at TIMESTAMP DEFAULT now(),
         updated_at TIMESTAMP DEFAULT now()
       );
     `);
 
-    // Load data only if empty
-    const result = await client.query('SELECT COUNT(*) FROM authors');
+    // Add some sample notes if table is empty
+    const result = await client.query('SELECT COUNT(*) FROM notes');
     const count = parseInt(result.rows[0].count, 10);
 
     if (count === 0) {
-      const sqlFilePath = path.join(__dirname, 'sample.sql');
-      if (fs.existsSync(sqlFilePath)) {
-        console.log('Loading sample data from sample.sql...');
-        const sql = fs.readFileSync(sqlFilePath, 'utf8');
-        await client.query(sql);
-        console.log('Sample data loaded successfully!');
-      } else {
-        console.warn('sample.sql file not found — skipping sample data load.');
-      }
+      console.log('Adding sample notes...');
+      await client.query(`
+        INSERT INTO notes (title, content) VALUES 
+        ('Welcome to Notes App', 'This is your first note! You can create, edit, and delete notes here.'),
+        ('Meeting Notes', 'Remember to discuss the project timeline and deliverables.'),
+        ('Shopping List', 'Milk, Bread, Eggs, Coffee');
+      `);
+      console.log('Sample notes added successfully!');
     } else {
       console.log(
-        `Authors table already has ${count} records — skipping load.`
+        `Notes table already has ${count} records — skipping sample data.`
       );
     }
 
-    sampleDataLoaded = true;
+    dbInitialized = true;
   } catch (err) {
-    console.error('Error checking/loading sample data:', err.stack);
+    console.error('Error initializing database:', err.stack);
   } finally {
     client.release();
   }
@@ -460,28 +109,96 @@ const loadSampleDataIfEmpty = async () => {
 // API Endpoints
 // =====================
 
-const COLUMNS = ['last_name', 'first_name'];
+// Get all notes
+app.get('/api/notes', async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      'SELECT * FROM notes ORDER BY updated_at DESC'
+    );
+    return res.json(rows);
+  } catch (err) {
+    console.error('DB Query Error:', err);
+    return res.status(500).json({ error: err.message });
+  }
+});
 
-app.get('/api/books', async (req, res) => {
-  const { firstName } = req.query;
-  if (!firstName) return res.json({ error: 'Missing required parameters' });
+// Get single note
+app.get('/api/notes/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const { rows } = await pool.query('SELECT * FROM notes WHERE id = $1', [
+      id,
+    ]);
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'Note not found' });
+    }
+    return res.json(rows[0]);
+  } catch (err) {
+    console.error('DB Query Error:', err);
+    return res.status(500).json({ error: err.message });
+  }
+});
 
-  const queryString =
-    firstName === '*'
-      ? 'SELECT * FROM authors'
-      : `SELECT * FROM authors WHERE first_name ~* '^${firstName}'`;
+// Create new note
+app.post('/api/notes', async (req, res) => {
+  const { title, content } = req.body;
+  if (!title) {
+    return res.status(400).json({ error: 'Title is required' });
+  }
 
   try {
-    const { rows } = await pool.query(queryString);
-    const filtered = rows.map((entry) => {
-      const e = {};
-      // COLUMNS.forEach((c) => (e[c] = entry[c]));
-      COLUMNS.forEach((c) => {
-        e[c] = entry[c];
-      });
-      return e;
-    });
-    return res.json(filtered);
+    const { rows } = await pool.query(
+      'INSERT INTO notes (title, content) VALUES ($1, $2) RETURNING *',
+      [title, content || '']
+    );
+    return res.status(201).json(rows[0]);
+  } catch (err) {
+    console.error('DB Query Error:', err);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// Update note
+app.put('/api/notes/:id', async (req, res) => {
+  const { id } = req.params;
+  const { title, content } = req.body;
+
+  if (!title) {
+    return res.status(400).json({ error: 'Title is required' });
+  }
+
+  try {
+    const { rows } = await pool.query(
+      'UPDATE notes SET title = $1, content = $2, updated_at = now() WHERE id = $3 RETURNING *',
+      [title, content || '', id]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'Note not found' });
+    }
+
+    return res.json(rows[0]);
+  } catch (err) {
+    console.error('DB Query Error:', err);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// Delete note
+app.delete('/api/notes/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const { rows } = await pool.query(
+      'DELETE FROM notes WHERE id = $1 RETURNING *',
+      [id]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'Note not found' });
+    }
+
+    return res.json({ message: 'Note deleted successfully' });
   } catch (err) {
     console.error('DB Query Error:', err);
     return res.status(500).json({ error: err.message });
@@ -508,7 +225,7 @@ app.get(/.*/, (req, res) => {
 // =====================
 
 if (require.main === module) {
-  loadSampleDataIfEmpty().then(() => {
+  initializeDatabase().then(() => {
     app.listen(app.get('port'), () => {
       console.log(`✅ Server running on port ${app.get('port')} [${ENV}]`);
     });
@@ -518,4 +235,4 @@ if (require.main === module) {
 // =====================
 // Export for testing or reuse
 // =====================
-module.exports = { app, pool, loadSampleDataIfEmpty };
+module.exports = { app, pool, initializeDatabase };

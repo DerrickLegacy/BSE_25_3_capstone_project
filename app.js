@@ -49,7 +49,6 @@ const COLUMNS = ['last_name', 'first_name'];
 //       // : `SELECT * FROM authors WHERE first_name REGEXP '^${firstName}'`;
 //       : `SELECT * FROM authors WHERE first_name ~* '^${firstName}'`;
 
-
 //   return pool.query(queryString, (err, rows) => {
 //     if (err) throw err;
 
@@ -89,16 +88,17 @@ app.get('/api/books', async (req, res) => {
 
     const result = rows.map((entry) => {
       const e = {};
-      COLUMNS.forEach((c) => (e[c] = entry[c]));
+      COLUMNS.forEach((c) => {
+        e[c] = entry[c];
+      });
       return e;
     });
 
-    res.json(result);
+    return res.json(result);
   } catch (err) {
     console.error('DB Query Error:', err);
-    res.status(500).json({ error: err.message });
+    return res.status(500).json({ error: err.message });
   }
 });
 
-
-module.exports = app; 
+module.exports = app;

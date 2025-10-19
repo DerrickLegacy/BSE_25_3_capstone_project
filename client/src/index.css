@@ -4,9 +4,9 @@
   margin-right: 5%;
 }
 * {
-  font-size: 16px;
-  font-weight: 300;
-  line-height: 1.5;
+  font-size: 24px;
+  font-weight: 400;
+  line-height: 1.6;
 }
 
 .btn.btn-ll5 {
@@ -41,23 +41,183 @@
   font-weight: 300;
 }
 
-h1,
-h2,
-h3,
-h4,
-h5,
-h6,
-strong,
-b {
-  font-weight: 300;
+h1 {
+  font-size: 3rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
 }
 
-h1,
-h2,
+h2 {
+  font-size: 2.5rem;
+  font-weight: 500;
+  margin-bottom: 1.25rem;
+}
+
 h3 {
+  font-size: 2rem;
+  font-weight: 500;
   margin-bottom: 1rem;
+}
+
+h4 {
+  font-size: 1.8rem;
+  font-weight: 500;
+  margin-bottom: 1rem;
+}
+
+h5 {
+  font-size: 1.6rem;
+  font-weight: 500;
+  margin-bottom: 0.75rem;
+}
+
+h6 {
+  font-size: 1.4rem;
+  font-weight: 500;
+  margin-bottom: 0.75rem;
+}
+
+strong,
+b {
+  font-weight: 600;
 }
 
 .top10 {
   margin-top: 10px;
+}
+
+/* Notes App Specific Styles */
+.card-title {
+  font-size: 2rem !important;
+  font-weight: 500 !important;
+  margin-bottom: 0.75rem !important;
+}
+
+.card-text {
+  font-size: 1.6rem !important;
+  line-height: 1.6 !important;
+  margin-bottom: 1rem !important;
+}
+
+.btn {
+  font-size: 1.4rem !important;
+  font-weight: 500 !important;
+  padding: 1rem 1.6rem !important;
+}
+
+.btn-sm {
+  font-size: 1.3rem !important;
+  padding: 0.8rem 1.2rem !important;
+}
+
+.modal-title {
+  font-size: 2.2rem !important;
+  font-weight: 500 !important;
+}
+
+.form-label {
+  font-size: 1.6rem !important;
+  font-weight: 500 !important;
+  margin-bottom: 0.5rem !important;
+}
+
+.form-control {
+  font-size: 1.5rem !important;
+  padding: 1rem 1.2rem !important;
+}
+
+.form-control::placeholder {
+  font-size: 1.4rem !important;
+  opacity: 0.6;
+}
+
+.text-muted {
+  font-size: 1.4rem !important;
+}
+
+.navbar-brand {
+  font-size: 2rem !important;
+  font-weight: 600 !important;
+}
+
+/* Make the "No notes yet" message larger */
+.text-center h4 {
+  font-size: 2.2rem !important;
+}
+
+.text-center p {
+  font-size: 1.8rem !important;
+}
+
+/* Footer text */
+footer {
+  font-size: 1.4rem !important;
+}
+
+/* Modal body text */
+.modal-body p {
+  font-size: 1.5rem !important;
+  line-height: 1.6 !important;
+}
+
+/* Date text in cards */
+small.text-muted {
+  font-size: 1.2rem !important;
+} /* 
+Edit/Create Modal Specific Styles */
+.modal textarea.form-control {
+  font-size: 1.6rem !important;
+  padding: 1.2rem !important;
+  line-height: 1.7 !important;
+  min-height: 200px !important;
+}
+
+.modal input.form-control {
+  font-size: 1.6rem !important;
+  padding: 1.2rem !important;
+  height: auto !important;
+}
+
+.modal .form-label {
+  font-size: 1.7rem !important;
+  font-weight: 600 !important;
+  margin-bottom: 0.8rem !important;
+}
+
+.modal .btn {
+  font-size: 1.5rem !important;
+  padding: 1.2rem 2rem !important;
+  margin: 0.5rem !important;
+}
+
+.modal-header .modal-title {
+  font-size: 2.4rem !important;
+  font-weight: 600 !important;
+}
+
+.modal-body {
+  padding: 2rem !important;
+}
+
+.modal-footer {
+  padding: 1.5rem 2rem !important;
+}
+
+/* Delete confirmation modal text */
+.modal-body p {
+  font-size: 1.7rem !important;
+  line-height: 1.6 !important;
+  margin-bottom: 1rem !important;
+}
+
+/* Form placeholders in modals */
+.modal .form-control::placeholder {
+  font-size: 1.5rem !important;
+  opacity: 0.7;
+}
+
+/* Close button */
+.modal .btn-close {
+  font-size: 1.5rem !important;
+  padding: 1rem !important;
 }

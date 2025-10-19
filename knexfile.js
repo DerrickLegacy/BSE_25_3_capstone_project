@@ -58,7 +58,7 @@
 //   },
 // };
 
-//adapted to postgres
+// adapted to postgres
 /**
  * @type { Object.<string, import("knex").Knex.Config> }
  */

@@ -15451,15 +15451,13 @@ const Jw = {
         var i;
         ((o = (i = o) != null ? i : !n.getIsAllColumnsVisible()),
           n.setColumnVisibility(
-            n
-              .getAllLeafColumns()
-              .reduce(
-                (a, c) => ({
-                  ...a,
-                  [c.id]: o || !(c.getCanHide != null && c.getCanHide()),
-                }),
-                {}
-              )
+            n.getAllLeafColumns().reduce(
+              (a, c) => ({
+                ...a,
+                [c.id]: o || !(c.getCanHide != null && c.getCanHide()),
+              }),
+              {}
+            )
           ));
       }),
       (n.getIsAllColumnsVisible = () =>
@@ -16818,54 +16816,48 @@ function yS() {
                 children: [
                   ue.jsx('thead', {
                     className: 'table-dark',
-                    children: v
-                      .getHeaderGroups()
-                      .map((w) =>
-                        ue.jsx(
-                          'tr',
-                          {
-                            children: w.headers.map((S) =>
-                              ue.jsx(
-                                'th',
-                                {
-                                  children: Ld(
-                                    S.column.columnDef.header,
-                                    S.getContext()
-                                  ),
-                                },
-                                S.id
-                              )
-                            ),
-                          },
-                          w.id
-                        )
-                      ),
+                    children: v.getHeaderGroups().map((w) =>
+                      ue.jsx(
+                        'tr',
+                        {
+                          children: w.headers.map((S) =>
+                            ue.jsx(
+                              'th',
+                              {
+                                children: Ld(
+                                  S.column.columnDef.header,
+                                  S.getContext()
+                                ),
+                              },
+                              S.id
+                            )
+                          ),
+                        },
+                        w.id
+                      )
+                    ),
                   }),
                   ue.jsx('tbody', {
-                    children: v
-                      .getRowModel()
-                      .rows.map((w) =>
-                        ue.jsx(
-                          'tr',
-                          {
-                            children: w
-                              .getVisibleCells()
-                              .map((S) =>
-                                ue.jsx(
-                                  'td',
-                                  {
-                                    children: Ld(
-                                      S.column.columnDef.cell,
-                                      S.getContext()
-                                    ),
-                                  },
-                                  S.id
-                                )
-                              ),
-                          },
-                          w.id
-                        )
-                      ),
+                    children: v.getRowModel().rows.map((w) =>
+                      ue.jsx(
+                        'tr',
+                        {
+                          children: w.getVisibleCells().map((S) =>
+                            ue.jsx(
+                              'td',
+                              {
+                                children: Ld(
+                                  S.column.columnDef.cell,
+                                  S.getContext()
+                                ),
+                              },
+                              S.id
+                            )
+                          ),
+                        },
+                        w.id
+                      )
+                    ),
                   }),
                 ],
               }),

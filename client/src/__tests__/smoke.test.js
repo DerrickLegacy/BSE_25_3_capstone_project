@@ -11,7 +11,9 @@ test('reducer handles SET_NOTES', () => {
     type: 'SET_NOTES',
     payload: [{ id: 1, title: 'Test Note', content: 'Test content' }],
   });
-  expect(next.notes).toEqual([{ id: 1, title: 'Test Note', content: 'Test content' }]);
+  expect(next.notes).toEqual([
+    { id: 1, title: 'Test Note', content: 'Test content' },
+  ]);
 });
 
 test('reducer handles ADD_NOTE', () => {
@@ -20,5 +22,7 @@ test('reducer handles ADD_NOTE', () => {
     type: 'ADD_NOTE',
     payload: { id: 1, title: 'New Note', content: 'New content' },
   });
-  expect(next.notes).toEqual([{ id: 1, title: 'New Note', content: 'New content' }]);
+  expect(next.notes).toEqual([
+    { id: 1, title: 'New Note', content: 'New content' },
+  ]);
 });

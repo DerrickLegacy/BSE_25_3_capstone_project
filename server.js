@@ -7,12 +7,39 @@ require('dotenv').config();
 const express = require('express');
 const { Pool } = require('pg');
 const path = require('path');
+const promClient = require('prom-client');
+
+const app = express();
 
 const VERSION = process.env.VERSION || 'latest';
 const ENV = process.env.NODE_ENV || 'development';
 console.log(`Server starting — environment: ${ENV}, version: ${VERSION}`);
 
-const app = express();
+// Create a Registry to register metrics
+const register = new promClient.Registry();
+// Add a default metrics collection
+promClient.collectDefaultMetrics({ register });
+
+// Example custom metric
+// Define the Counter metric
+const httpRequestCounter = new promClient.Counter({
+  name: 'http_requests_total', // required
+  help: 'Total number of HTTP requests', // required
+  labelNames: ['method', 'route', 'status_code'], // optional
+});
+
+register.registerMetric(httpRequestCounter);
+// Middleware to increment the counter
+app.use((req, res, next) => {
+  res.on('finish', () => {
+    httpRequestCounter.inc({
+      method: req.method,
+      route: req.path,
+      status_code: res.statusCode,
+    });
+  });
+  next();
+});
 
 // =====================
 // Middleware
@@ -108,6 +135,13 @@ const initializeDatabase = async () => {
 // =====================
 // API Endpoints
 // =====================
+// Metrics endpoint for Prometheus to scrape
+app.get('/metrics', async (req, res) => {
+  console.log('Loading metrics');
+  res.setHeader('Content-Type', register.contentType);
+  res.setHeader('Cache-Control', 'no-store');
+  res.send(await register.metrics());
+});
 
 // Get all notes
 app.get('/api/notes', async (req, res) => {

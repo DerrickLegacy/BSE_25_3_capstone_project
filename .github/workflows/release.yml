@@ -25,7 +25,7 @@ jobs:
       - name: 🧩 Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22 # ✅ Updated from 18 → 22 (supports new semantic-release)
+          node-version: 22
           cache: 'npm'
 
       - name: 📦 Install Dependencies

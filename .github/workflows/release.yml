@@ -31,7 +31,7 @@ jobs:
       - name: 📦 Install Dependencies
         run: npm ci
 
-      # --- Step 1: Run semantic-release in dry mode to detect next version ---
+      # --- Step 1: Run semantic-release in dry mode to detect next version ---to be added
       - name: 🚀 Detect Next Semantic Release Version
         id: detect
         env:

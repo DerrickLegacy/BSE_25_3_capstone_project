@@ -20,12 +20,12 @@ jobs:
       - name: 🧾 Checkout Repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Required for semantic-release to access tags and history
+          fetch-depth: 0
 
       - name: 🧩 Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 22 # ✅ Updated from 18 → 22 (supports new semantic-release)
           cache: 'npm'
 
       - name: 📦 Install Dependencies

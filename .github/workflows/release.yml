@@ -2,9 +2,9 @@ name: 🚀 Automated Version Release
 
 on:
   push:
-    branches: ['main'] # Actual releases
+    branches: ['main'] # Only run actual release on main
   pull_request:
-    branches: ['main'] # Dry-run only on PRs
+    branches: ['main'] # Dry-run on PRs
 
 jobs:
   release:
@@ -21,7 +21,7 @@ jobs:
       - name: 🧾 Checkout Repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Required for semantic-release to read tags/history
+          fetch-depth: 0 # Needed for semantic-release to read tags/history
 
       # --- Step 1: Setup Node.js ---
       - name: 🧩 Setup Node.js
@@ -34,7 +34,7 @@ jobs:
       - name: 📦 Install Dependencies
         run: npm ci
 
-      # --- Step 3: Dry-run on PRs ---
+      # --- Step 3: Dry-run on PRs to detect next version ---
       - name: 🔍 Dry-run Semantic Release (PRs)
         if: github.event_name == 'pull_request'
         env:
@@ -44,34 +44,38 @@ jobs:
           npx semantic-release --dry-run > release_output.txt
           cat release_output.txt
 
-      # --- Step 4: Actual release on main pushes ---
+      # --- Step 4: Run actual semantic-release on main pushes ---
       - name: 🚀 Perform Release (main branch)
         if: github.ref == 'refs/heads/main'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "Running semantic-release on main branch..."
+          # Detect next version
+          NEXT_VERSION=$(npx semantic-release --dry-run | grep -oE 'The next release version is [0-9]+\.[0-9]+\.[0-9]+' | awk '{print $6}')
 
-          # --- Step 4a: Run semantic-release to create tag & GitHub release ---
-          npx semantic-release
+          if [ -z "$NEXT_VERSION" ]; then
+            echo "No new version detected. Skipping version files and release."
+            exit 0
+          fi
 
-          # --- Step 4b: Get the latest released version (tag) ---
-          LATEST_TAG=$(git describe --tags --abbrev=0)
+          echo "Next version: $NEXT_VERSION"
           DATE=$(date)
           SHORT_COMMIT=$(git rev-parse --short HEAD)
 
-          echo "Latest released version: $LATEST_TAG"
+          # --- Update version.js (history) ---
+          echo "// Version: ${NEXT_VERSION} - Commit: ${SHORT_COMMIT} - ${DATE}" >> version.js
+          echo "console.log('Version ${NEXT_VERSION} (${SHORT_COMMIT}) released on ${DATE}');" >> version.js
 
-          # --- Step 4c: Append to version.js (history) ---
-          echo "// Version: ${LATEST_TAG} - Commit: ${SHORT_COMMIT} - ${DATE}" >> version.js
-          echo "console.log('Version ${LATEST_TAG} (${SHORT_COMMIT}) released on ${DATE}');" >> version.js
+          # --- Update frontend version.json ---
+          echo "{ \"version\": \"${NEXT_VERSION}\", \"commit\": \"${SHORT_COMMIT}\", \"date\": \"${DATE}\" }" > client/public/version.json
 
-          # --- Step 4d: Update frontend version.json ---
-          echo "{ \"version\": \"${LATEST_TAG}\", \"commit\": \"${SHORT_COMMIT}\", \"date\": \"${DATE}\" }" > client/public/version.json
-
-          # --- Step 4e: Commit updated version files ---
+          # Commit version files
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add version.js client/public/version.json
-          git commit -m "chore: record release ${LATEST_TAG} [skip ci]" || echo "No changes to commit"
+          git commit -m "chore: record release ${NEXT_VERSION} [skip ci]" || echo "No changes to commit"
           git push origin HEAD:main
+
+          # --- Run semantic-release to create tag and GitHub release ---
+          npx semantic-release

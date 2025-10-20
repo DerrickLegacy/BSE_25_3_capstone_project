@@ -2,9 +2,9 @@ name: 🚀 Automated Version Release
 
 on:
   push:
-    branches: ['**']
+    branches: ['main'] # Only run actual release on main
   pull_request:
-    branches: ['main'] # pull requests to main.
+    branches: ['main'] # Dry-run on PRs
 
 jobs:
   release:
@@ -17,66 +17,65 @@ jobs:
       pull-requests: write
 
     steps:
+      # --- Step 0: Checkout code ---
       - name: 🧾 Checkout Repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 0 # Needed for semantic-release to read tags/history
 
+      # --- Step 1: Setup Node.js ---
       - name: 🧩 Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: 'npm'
 
+      # --- Step 2: Install dependencies ---
       - name: 📦 Install Dependencies
         run: npm ci
 
-      # --- Step 1: Run semantic-release in dry mode to detect next version ---to be added
-      - name: 🚀 Detect Next Semantic Release Version
-        id: detect
+      # --- Step 3: Dry-run on PRs to detect next version ---
+      - name: 🔍 Dry-run Semantic Release (PRs)
+        if: github.event_name == 'pull_request'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          echo "Running semantic-release dry-run for PR..."
           npx semantic-release --dry-run > release_output.txt
-          echo "== Semantic Release Output =="
           cat release_output.txt
 
-          VERSION=$(grep -oE 'The next release version is [0-9]+\.[0-9]+\.[0-9]+' release_output.txt | awk '{print $6}')
-          if [ -z "$VERSION" ]; then
-            echo "No new version detected. Skipping version.js/json update."
-            echo "release=false" >> $GITHUB_ENV
+      # --- Step 4: Run actual semantic-release on main pushes ---
+      - name: 🚀 Perform Release (main branch)
+        if: github.ref == 'refs/heads/main'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Running semantic-release on main branch..."
+          # Detect next version
+          NEXT_VERSION=$(npx semantic-release --dry-run | grep -oE 'The next release version is [0-9]+\.[0-9]+\.[0-9]+' | awk '{print $6}')
+
+          if [ -z "$NEXT_VERSION" ]; then
+            echo "No new version detected. Skipping version files and release."
             exit 0
           fi
 
-          echo "Detected next version: $VERSION"
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
-          echo "release=true" >> $GITHUB_ENV
-
-      # --- Step 2: Append version info to version.js and version.json ---
-      - name: 🧾 Update Version Files
-        if: env.release == 'true'
-        run: |
+          echo "Next version: $NEXT_VERSION"
           DATE=$(date)
           SHORT_COMMIT=$(git rev-parse --short HEAD)
 
-          # Append to version.js (history)
-          echo "// Version: ${VERSION} - Commit: ${SHORT_COMMIT} - ${DATE}" >> version.js
-          echo "console.log('Version ${VERSION} (${SHORT_COMMIT}) released on ${DATE}');" >> version.js
+          # --- Update version.js (history) ---
+          echo "// Version: ${NEXT_VERSION} - Commit: ${SHORT_COMMIT} - ${DATE}" >> version.js
+          echo "console.log('Version ${NEXT_VERSION} (${SHORT_COMMIT}) released on ${DATE}');" >> version.js
 
-          # Update version.json (for frontend)
-          echo "{ \"version\": \"${VERSION}\", \"commit\": \"${SHORT_COMMIT}\", \"date\": \"${DATE}\" }" > client/public/version.json
+          # --- Update frontend version.json ---
+          echo "{ \"version\": \"${NEXT_VERSION}\", \"commit\": \"${SHORT_COMMIT}\", \"date\": \"${DATE}\" }" > client/public/version.json
 
-          echo "✅ Updated version.js and client/public/version.json"
-
+          # Commit version files
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add version.js client/public/version.json
-          git commit -m "chore: record release ${VERSION} [skip ci]" || echo "No changes to commit"
+          git commit -m "chore: record release ${NEXT_VERSION} [skip ci]" || echo "No changes to commit"
           git push origin HEAD:main
 
-      # --- Step 3: Run actual semantic-release to publish tag + GitHub release ---
-      - name: 🏁 Perform Semantic Release
-        if: env.release == 'true'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npx semantic-release
+          # --- Run semantic-release to create tag and GitHub release ---
+          npx semantic-release

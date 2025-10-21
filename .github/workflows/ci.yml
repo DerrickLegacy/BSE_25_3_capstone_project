@@ -76,6 +76,13 @@ jobs:
         working-directory: .
         env:
           VERSION: ${{ env.VERSION }}
+          
+       # 8.1 Run integration tests
+      - name: Run integration tests
+        run: npm run test:integration
+        working-directory: .
+        env:
+          VERSION: ${{ env.VERSION }}
 
       # 9. Run frontend tests
       - name: Run frontend tests

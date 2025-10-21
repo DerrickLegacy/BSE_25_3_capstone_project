@@ -5,6 +5,11 @@ on:
     branches: ['main'] # Only run actual release on main
   pull_request:
     branches: ['main'] # Dry-run on PRs
+  workflow_dispatch:
+    inputs:
+      rollback_to_tag:
+        description: 'Git tag to roll back to'
+        required: false
 
 jobs:
   release:
@@ -79,3 +84,18 @@ jobs:
 
           # --- Run semantic-release to create tag and GitHub release ---
           npx semantic-release
+
+  rollback:
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.rollback_to_tag != ''
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code at rollback tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.rollback_to_tag }}
+
+      - name: Force push rollback to main
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git push origin HEAD:main --force

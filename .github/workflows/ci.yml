@@ -121,3 +121,8 @@ jobs:
       #     service_id: ${{ secrets.RENDER_PROD_SERVICE_ID }}
       #     api_key: ${{ secrets.RENDER_API_KEY }}
       #     github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Force failure (test rollback) # make pipeline fial intentionallt for rollback testing
+        run: |
+          echo "This is a test failure to trigger rollback"
+          exit 1

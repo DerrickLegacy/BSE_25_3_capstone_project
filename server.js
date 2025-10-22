@@ -240,7 +240,7 @@ app.delete('/api/notes/:id', async (req, res) => {
 });
 
 
-// // health
+// // health check
 // app.get('/health', async (req, res) => {
     
 //     // ===============================================

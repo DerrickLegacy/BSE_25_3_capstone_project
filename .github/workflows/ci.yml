@@ -114,10 +114,123 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
       #15. Deploy Production
-      # - name: Deploy to Render (Production)
-      #   if: success() && github.ref == 'refs/heads/main'
-      #   uses: JorgeLNJunior/render-deploy@v1.4.6
-      #   with:
-      #     service_id: ${{ secrets.RENDER_PROD_SERVICE_ID }}
-      #     api_key: ${{ secrets.RENDER_API_KEY }}
-      #     github_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Deploy to Render (Production)
+        if: success() && github.ref == 'refs/heads/bse'
+        uses: JorgeLNJunior/render-deploy@v1.4.6
+        with:
+          service_id: ${{ secrets.RENDER_PROD_SERVICE_ID }}
+          api_key: ${{ secrets.RENDER_API_KEY }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+  # =========================================
+  # 2. HEALTH CHECK JOB
+  # Uses a native curl script to check the URL, eliminating the need for jakejarvis/wait-for-url
+  # =========================================
+  health-check:
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    # IMPORTANT: Run if build-and-test succeeded and we are on the staging branch
+    if: success() && github.ref == 'refs/heads/bse'
+    
+    steps:
+      - name: ⏲️ Wait for service to become healthy (Native Script)
+        id: health_check_script
+        env:
+          HEALTH_URL: https://${{ secrets.RENDER_STAGING_URL }}/health
+          TIMEOUT_SECONDS: 300 # 5 minutes
+          POLL_INTERVAL: 10    # Check every 10 seconds
+          
+        run: |
+          echo "Starting health check for $HEALTH_URL..."
+          START_TIME=$(date +%s)
+          
+          while true; do
+              CURRENT_TIME=$(date +%s)
+              ELAPSED=$((CURRENT_TIME - START_TIME))
+              
+              # 1. Check for timeout
+              if [ "$ELAPSED" -ge "$TIMEOUT_SECONDS" ]; then
+                  echo "🔴 Error: Timeout reached ($TIMEOUT_SECONDS seconds). Service is not healthy."
+                  exit 1 
+              fi
+              
+              # 2. Perform the actual health check request
+              # -s: silent, -o /dev/null: discard output, -w "%{http_code}": write only the status code
+              STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$HEALTH_URL")
+              
+              echo "Time elapsed: ${ELAPSED}s. Status Code: $STATUS_CODE"
+              
+              # 3. Check for success (200 OK)
+              if [ "$STATUS_CODE" -eq 200 ]; then
+                  echo "✅ Success! Service is healthy."
+                  break # Exit the loop successfully
+              fi
+              
+              # 4. Wait before polling again
+              sleep "$POLL_INTERVAL"
+          done
+  
+  # =========================================
+  # 3. ROLLBACK JOB
+  # Runs ONLY if the health check job failed.
+  # =========================================
+  rollback-on-failure:
+    runs-on: ubuntu-latest
+    needs: health-check
+    
+    # CRITICAL: Runs ONLY if the health-check job failed AND we are on the main branch 
+    if: failure() && needs.health-check.result == 'failure' && github.ref == 'refs/heads/bse'
+    
+    steps:
+      - name: 🚨 Fetch Previous Successful Deployment ID
+        id: fetch_previous
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          SERVICE_ID: ${{ secrets.RENDER_SERVICE_ID }}
+        run: |
+          echo "Health check failed. Finding last successful deployment ID..."
+          
+          # Query Render API for the last successful deployment
+          RESPONSE=$(curl -s -X GET \
+            -H "Authorization: Bearer $RENDER_API_KEY" \
+            "https://api.render.com/v1/services/$SERVICE_ID/deploys?limit=5")
+            
+          # Finds the most recent deployment with status "live" (i.e., the last known good version)
+          # jq must be available on the runner, which it is by default.
+          PREVIOUS_DEPLOY_ID=$(echo "$RESPONSE" | jq -r '.[] | select(.status == "live") | .id' | head -n 1)
+          
+          if [ -z "$PREVIOUS_DEPLOY_ID" ]; then
+            echo "🔴 Error: Could not find a previous 'live' deployment ID for rollback."
+            exit 1
+          fi
+          
+          echo "Found previous LIVE deployment ID: $PREVIOUS_DEPLOY_ID"
+          echo "PREVIOUS_DEPLOY_ID=$PREVIOUS_DEPLOY_ID" >> $GITHUB_OUTPUT
+          
+
+      - name: 🔄 Trigger Render Rollback
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          SERVICE_ID: ${{ secrets.RENDER_SERVICE_ID }}
+          ROLLBACK_ID: ${{ steps.fetch_previous.outputs.PREVIOUS_DEPLOY_ID }}
+          
+        run: |
+          # The rollback endpoint URL
+          RENDER_URL="https://api.render.com/v1/services/$SERVICE_ID/deploys/$ROLLBACK_ID/rollback"
+
+          echo "Attempting to roll back to Deployment ID: $ROLLBACK_ID"
+
+          # Send the POST request to the Render API to trigger the rollback
+          RESPONSE=$(curl -s -X POST \
+            -H "Authorization: Bearer $RENDER_API_KEY" \
+            -H "Accept: application/json" \
+            $RENDER_URL)
+          
+          if echo "$RESPONSE" | grep -q '"error":'; then
+              echo "🔴 Automated API Rollback Failed."
+              echo "Response: $RESPONSE"
+              exit 1
+          else
+              echo "✅ Automated Rollback Request Successful!"
+              echo "Render is now deploying the old version."
+          fi

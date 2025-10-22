@@ -188,7 +188,6 @@ jobs:
       - name: ⏲️ Wait for Production Service to become healthy
         id: health_check_script
         env:
-          # REQUIRES RENDER_PROD_URL SECRET
           HEALTH_URL: https://${{ secrets.RENDER_PROD_URL }}/health
           TIMEOUT_SECONDS: 300
           POLL_INTERVAL: 10
@@ -232,30 +231,32 @@ jobs:
     if: failure() && needs.health-check-staging.result == 'failure' && github.ref == 'refs/heads/bse'
     
     steps:
-      - name: 🚨 Fetch Previous LIVE Deployment ID (Staging)
+      - name: 🚨 Fetch Previous Safe Deployment ID (Staging)
         id: fetch_previous
         env:
           RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
           # Use the STAGING Service ID here
           SERVICE_ID: ${{ secrets.RENDER_SERVICE_ID }} 
         run: |
-          echo "Staging Health check failed. Finding last LIVE deployment ID for rollback..."
+          echo "Staging Health check failed. Finding last safe deployment ID for rollback..."
           
           RESPONSE=$(curl -s -X GET \
             -H "Authorization: Bearer $RENDER_API_KEY" \
             "https://api.render.com/v1/services/$SERVICE_ID/deploys?limit=5")
             
-          # DIAGNOSTIC: Check for the 'live' status, which is the previous working version
-          echo "--- LIVE Deployment IDs Found (Newest to Oldest) ---"
-          echo "$RESPONSE" | jq -r '.[] | select(.status == "live") | .id' || true
+          # DIAGNOSTIC: Check for deployments that successfully built or are currently live
+          echo "--- SAFE Deployment IDs Found (Status: 'live' or 'success', Newest to Oldest) ---"
+          DEPLOY_IDS=$(echo "$RESPONSE" | jq -r '.[] | select(.status == "live" or .status == "success") | .id')
+          echo "$DEPLOY_IDS"
           echo "-----------------------------------------------------------"
 
-          # FIX: Filter for the "live" status (the last known running good version) and take the first one.
-          PREVIOUS_DEPLOY_ID=$(echo "$RESPONSE" | jq -r '.[] | select(.status == "live") | .id' | head -n 1)
+          # CRITICAL FIX: We need the SECOND most recent ID, because the NEWEST one will often be marked "success" 
+          # (meaning the build finished) even though the health check failed.
+          PREVIOUS_DEPLOY_ID=$(echo "$DEPLOY_IDS" | tail -n +2 | head -n 1)
           
           if [ -z "$PREVIOUS_DEPLOY_ID" ]; then
-            echo "🔴 FATAL ERROR: Rollback failed. Could not find any 'live' deployment ID in the recent history."
-            echo "Ensure your Render service has at least one previous deployment marked as 'live'."
+            echo "🔴 FATAL ERROR: Rollback failed. Could not find a second safe deployment ID in the recent history."
+            echo "Ensure your Render service has at least two deployments with a 'live' or 'success' status."
             exit 1
           fi
           
@@ -295,30 +296,30 @@ jobs:
     if: failure() && needs.health-check-prod.result == 'failure' && github.ref == 'refs/heads/bse'
     
     steps:
-      - name: 🚨 Fetch Previous LIVE Deployment ID (Production)
+      - name: 🚨 Fetch Previous Safe Deployment ID (Production)
         id: fetch_previous_prod
         env:
           RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
-          # REQUIRES RENDER_PROD_SERVICE_ID SECRET
           SERVICE_ID: ${{ secrets.RENDER_PROD_SERVICE_ID }} 
         run: |
-          echo "Production Health check failed. Finding last LIVE deployment ID for rollback..."
+          echo "Production Health check failed. Finding last safe deployment ID for rollback..."
           
           RESPONSE=$(curl -s -X GET \
             -H "Authorization: Bearer $RENDER_API_KEY" \
             "https://api.render.com/v1/services/$SERVICE_ID/deploys?limit=5")
             
-          # DIAGNOSTIC: Check for the 'live' status, which is the previous working version
-          echo "--- LIVE Deployment IDs Found (Newest to Oldest) ---"
-          echo "$RESPONSE" | jq -r '.[] | select(.status == "live") | .id' || true
+          # DIAGNOSTIC: Check for deployments that successfully built or are currently live
+          echo "--- SAFE Deployment IDs Found (Status: 'live' or 'success', Newest to Oldest) ---"
+          DEPLOY_IDS=$(echo "$RESPONSE" | jq -r '.[] | select(.status == "live" or .status == "success") | .id')
+          echo "$DEPLOY_IDS"
           echo "-----------------------------------------------------------"
 
-          # Filter for the "live" status (the last known running good version) and take the first one.
-          PREVIOUS_DEPLOY_ID=$(echo "$RESPONSE" | jq -r '.[] | select(.status == "live") | .id' | head -n 1)
+          # CRITICAL FIX: We need the SECOND most recent ID for the same reason as staging.
+          PREVIOUS_DEPLOY_ID=$(echo "$DEPLOY_IDS" | tail -n +2 | head -n 1)
           
           if [ -z "$PREVIOUS_DEPLOY_ID" ]; then
-            echo "🔴 FATAL ERROR: Production Rollback failed. Could not find any 'live' deployment ID in the recent history."
-            echo "Ensure your Production Render service has at least one previous deployment marked as 'live'."
+            echo "🔴 FATAL ERROR: Production Rollback failed. Could not find a second safe deployment ID in the recent history."
+            echo "Ensure your Production Render service has at least two deployments with a 'live' or 'success' status."
             exit 1
           fi
           
@@ -329,7 +330,6 @@ jobs:
       - name: 🔄 Trigger Render Rollback (Production)
         env:
           RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
-          # REQUIRES RENDER_PROD_SERVICE_ID SECRET
           SERVICE_ID: ${{ secrets.RENDER_PROD_SERVICE_ID }}
           ROLLBACK_ID: ${{ steps.fetch_previous_prod.outputs.PREVIOUS_DEPLOY_ID }}
           

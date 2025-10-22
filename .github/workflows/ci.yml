@@ -176,7 +176,7 @@ jobs:
   # =========================================
   # 3. FINAL PRODUCTION DEPLOYMENT (Promotion)
   # =========================================
-  deploy-prod-final:
+  deploy-prod:
     runs-on: ubuntu-latest
     # CRITICAL: Only run IF the staging health check passed
     needs: health-check 

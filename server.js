@@ -240,21 +240,21 @@ app.delete('/api/notes/:id', async (req, res) => {
 });
 
 
-// health
-app.get('/health', async (req, res) => {
+// // health
+// app.get('/health', async (req, res) => {
     
-    // ===============================================
-    // 🔥 START: TEMPORARY CODE TO TEST ROLLBACK FAILURE
-    // ===============================================
-    // This looks for the environment variable we set on the Render test service
-    if (process.env.ROLLBACK_TEST_FAIL === 'true') {
-        console.error("Rollback Test Triggered: Intentionally returning 503.");
-        // Returning a non-200 status code immediately fails the CI health check
-        return res.status(503).json({ 
-            status: 'UNHEALTHY', 
-            error: 'DELIBERATE FAILURE: Testing automated rollback.' 
-        });
-    }
+//     // ===============================================
+//     // 🔥 START: TEMPORARY CODE TO TEST ROLLBACK FAILURE
+//     // ===============================================
+//     // This looks for the environment variable we set on the Render test service
+//     if (process.env.ROLLBACK_TEST_FAIL === 'true') {
+//         console.error("Rollback Test Triggered: Intentionally returning 503.");
+//         // Returning a non-200 status code immediately fails the CI health check
+//         return res.status(503).json({ 
+//             status: 'UNHEALTHY', 
+//             error: 'DELIBERATE FAILURE: Testing automated rollback.' 
+//         });
+//     }
   
 app.get('/api/version', (req, res) => {
   res.json({ version: VERSION, environment: ENV });

@@ -2,9 +2,9 @@ name: 🚀 Automated Version Release
 
 on:
   push:
-    branches: ['main'] # ✅ Only version when code is pushed (merged) to main
+    branches: ['main']
   pull_request:
-    branches: ['main'] # ✅ Optional: runs dry-run (no versioning) on PRs for preview
+    branches: ['main']
 
 jobs:
   release:
@@ -20,7 +20,7 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # semantic-release needs full git history
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -34,3 +34,37 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npx semantic-release
+
+  append_version_to_file:
+    name: Append Version to File
+    runs-on: ubuntu-latest
+    needs: release
+
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get latest tag
+        id: get_tag
+        run: |
+          LATEST_TAG=$(git describe --tags --abbrev=0)
+          echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_ENV
+          echo "Latest tag: $LATEST_TAG"
+
+      - name: Append version to version.txt
+        run: echo "$LATEST_TAG" >> version.txt
+
+      - name: Commit and push version.txt
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add version.txt
+          git commit -m "chore: append version $LATEST_TAG to version.txt" || echo "No changes to commit"
+          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} HEAD:main

@@ -211,16 +211,23 @@ jobs:
             -H "Authorization: Bearer $RENDER_API_KEY" \
             "https://api.render.com/v1/services/$SERVICE_ID/deploys?limit=5")
             
-          # FIX: Find the most recent deployment with status "success" (meaning the build completed), 
-          # take the first two, and select the SECOND ONE (index 1) which is the last known good version.
-          PREVIOUS_DEPLOY_ID=$(echo "$RESPONSE" | jq -r '.[] | select(.status == "success") | .id' | head -n 2 | tail -n 1)
+          # DIAGNOSTIC: Print the IDs that were successfully built
+          echo "--- Successful Deployment IDs Found (Newest to Oldest) ---"
+          # We check for a list of successful IDs. If this list has fewer than 2 items, the rollback must fail.
+          echo "$RESPONSE" | jq -r '.[] | select(.status == "success") | .id' || true
+          echo "-----------------------------------------------------------"
+
+          # FIX: Find all successful IDs, skip the newest one (which is the broken one that completed its build), and take the next one.
+          # tail -n +2 skips the first result, head -n 1 takes the new first result.
+          PREVIOUS_DEPLOY_ID=$(echo "$RESPONSE" | jq -r '.[] | select(.status == "success") | .id' | tail -n +2 | head -n 1)
           
           if [ -z "$PREVIOUS_DEPLOY_ID" ]; then
-            echo "🔴 Error: Could not find a previous 'success' deployment ID for rollback. Ensure you have two prior successful deployments in the history."
+            echo "🔴 FATAL ERROR: Rollback failed. Could not find a second 'success' deployment ID in the recent history."
+            echo "Ensure your Render service has at least two successfully built versions (even if one is failing the health check)."
             exit 1
           fi
           
-          echo "Found previous SUCCESS Deployment ID for rollback: $PREVIOUS_DEPLOY_ID"
+          echo "Found previous SAFE Deployment ID for rollback: $PREVIOUS_DEPLOY_ID"
           echo "PREVIOUS_DEPLOY_ID=$PREVIOUS_DEPLOY_ID" >> $GITHUB_OUTPUT
           
 
@@ -241,9 +248,9 @@ jobs:
             $RENDER_URL)
           
           if echo "$RESPONSE" | grep -q '"error":'; then
-              echo "🔴 Automated API Rollback Failed for Staging. (API Error)"
+              echo "🔴 Automated API Rollback Failed for Staging. (Render API Error)"
               echo "Response: $RESPONSE"
               exit 1
           else
-              echo "✅ Automated Staging Rollback Successful!"
+              echo "✅ Automated Staging Rollback Request Successful!"
           fi

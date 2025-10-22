@@ -243,14 +243,14 @@ app.delete('/api/notes/:id', async (req, res) => {
 // Before (The working code):
 // app.get('/health', (req, res) => {
 //   // Good response, returns 200
-//   res.status(200).send('OK'); 
+//   res.status(200).send('OK');
 // });
 
 // After (The BAD code you must commit):
 app.get('/health', (req, res) => {
   // BAD RESPONSE: Will cause the health-check job to fail
-  console.log("HEALTH CHECK IS INTENTIONALLY FAILING TO TEST ROLLBACK!");
-  res.status(500).send('Intentional Rollback Test Failure'); 
+  console.log('HEALTH CHECK IS INTENTIONALLY FAILING TO TEST ROLLBACK!');
+  res.status(500).send('Intentional Rollback Test Failure');
 });
 
 app.get('/api/version', (req, res) => {

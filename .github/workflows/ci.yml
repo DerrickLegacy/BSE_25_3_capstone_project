@@ -122,17 +122,6 @@ jobs:
       #     api_key: ${{ secrets.RENDER_API_KEY }}
       #     github_token: ${{ secrets.GITHUB_TOKEN }}
 
-  deploy-prod:
-      runs-on: ubuntu-latest
-      needs: build-and-test
-      if: success() && github.ref == 'refs/heads/bse' 
-      steps:
-        # 🚀 NEW DEPLOYMENT STEP: Using curl to hit the Render Deploy Hook
-        - name: 🚀 Trigger Deploy Hook (Production)
-          run: |
-            echo "Triggering Production Deployment via Deploy Hook..."
-            curl -X POST "${{ secrets.RENDER_PROD_DEPLOY_HOOK }}"
-
   # =========================================
   # 2. HEALTH CHECK JOB
   # Uses a native curl script to check the URL, eliminating the need for jakejarvis/wait-for-url
@@ -180,6 +169,18 @@ jobs:
               # 4. Wait before polling again
               sleep "$POLL_INTERVAL"
           done
+          
+  deploy-prod:
+      runs-on: ubuntu-latest
+      needs: build-and-test
+      if: success() && github.ref == 'refs/heads/bse' 
+      steps:
+        # 🚀 NEW DEPLOYMENT STEP: Using curl to hit the Render Deploy Hook
+        - name: 🚀 Trigger Deploy Hook (Production)
+          run: |
+            echo "Triggering Production Deployment via Deploy Hook..."
+            curl -X POST "${{ secrets.RENDER_PROD_DEPLOY_HOOK }}"
+
   
   # =========================================
   # 3. ROLLBACK JOB

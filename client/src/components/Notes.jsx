@@ -24,6 +24,7 @@ function Notes() {
   const [isEditing, setIsEditing] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [noteToDelete, setNoteToDelete] = useState(null);
+  const [formError, setFormError] = useState('');
 
   useEffect(() => {
     dispatch({ type: 'FETCH_NOTES' });
@@ -42,6 +43,7 @@ function Notes() {
       setIsEditing(false);
       dispatch(clearCurrentNote());
     }
+    setFormError('');
     setIsModalOpen(true);
     console.log('Modal state set to open');
   };
@@ -51,29 +53,51 @@ function Notes() {
     setTitle('');
     setContent('');
     setIsEditing(false);
+    setFormError('');
     dispatch(clearCurrentNote());
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     // if (!title.trim()) return; // Commented out client-side validation
 
     console.log('Form submitted:', { title, content, isEditing, currentNote });
 
     if (isEditing && currentNote) {
+      // Keep existing flow for update
       console.log('Dispatching UPDATE_NOTE_SAGA');
       dispatch({
         type: 'UPDATE_NOTE_SAGA',
         payload: { id: currentNote.id, title, content },
       });
-    } else {
-      console.log('Dispatching CREATE_NOTE');
-      dispatch({
-        type: 'CREATE_NOTE',
-        payload: { title, content },
-      });
+      closeModal();
+      return;
     }
-    closeModal();
+
+    // Create flow: call API directly so we can show server validation errors
+    try {
+      setFormError('');
+      const response = await fetch('/api/notes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, content }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        setFormError(data.error || 'Failed to create note');
+        return; // keep modal open so user sees the error
+      }
+
+      // Success
+      await response.json();
+      // Refresh list
+      dispatch({ type: 'FETCH_NOTES' });
+      closeModal();
+    } catch (err) {
+      console.error('Create note failed:', err);
+      setFormError('Network error. Please try again.');
+    }
   };
 
   const handleDelete = (noteId) => {
@@ -189,6 +213,11 @@ function Notes() {
               </div>
               <form onSubmit={handleSubmit} noValidate>
                 <div className="modal-body">
+                  {formError && (
+                    <div className="alert alert-danger" role="alert">
+                      {formError}
+                    </div>
+                  )}
                   <div className="mb-3">
                     <label htmlFor="note-title" className="form-label">
                       Title

@@ -1,4 +1,4 @@
-name: Node.js React CI (Deployment Gate Pipeline)
+name: 🟢 Node.js React CI (Deployment Gate Pipeline)
 
 # Trigger CI on any branch push and PR to main
 on:
@@ -120,10 +120,8 @@ jobs:
           echo "Triggering Staging Deployment via Deploy Hook..."
           # Note: Use the deploy action for explicit staging branch deploy, or hook if needed
           if [ "${{ github.ref }}" = "refs/heads/staging" ]; then
-            # Using the Action for the staging branch (as per your original config)
-            # This requires secrets.RENDER_SERVICE_ID to be your Staging ID
-            echo "Deploying Staging using Render Action..."
             # Fallback to the deployment action for the original staging branch logic
+            echo "Deploying Staging using Render Action..."
             /usr/bin/render-deploy --service-id ${{ secrets.RENDER_SERVICE_ID }} --api-key ${{ secrets.RENDER_API_KEY }} --github-token ${{ secrets.GITHUB_TOKEN }}
           else
             # Using Hook for bse promotion pipeline validation
@@ -132,7 +130,7 @@ jobs:
           fi
 
 
-  health-check-staging:
+  health-check:
     runs-on: ubuntu-latest
     needs: deploy-staging # Wait until staging deploy is triggered
     if: success() && github.ref == 'refs/heads/bse'
@@ -181,7 +179,7 @@ jobs:
   deploy-prod-final:
     runs-on: ubuntu-latest
     # CRITICAL: Only run IF the staging health check passed
-    needs: health-check-staging 
+    needs: health-check 
     if: success() && github.ref == 'refs/heads/bse' 
     steps:
       - name: 🚀 Trigger Deploy Hook (Production)
@@ -194,10 +192,10 @@ jobs:
   # =========================================
   rollback-on-failure:
     runs-on: ubuntu-latest
-    needs: health-check-staging
+    needs: health-check
     
-    # CRITICAL: Runs ONLY if the health-check-staging job failed (and we are on the bse branch)
-    if: failure() && needs.health-check-staging.result == 'failure' && github.ref == 'refs/heads/bse'
+    # CRITICAL: Runs ONLY if the health-check job failed (and we are on the bse branch)
+    if: failure() && needs.health-check.result == 'failure' && github.ref == 'refs/heads/bse'
     
     steps:
       - name: 🚨 Fetch Previous Successful Deployment ID (Staging)
@@ -213,14 +211,16 @@ jobs:
             -H "Authorization: Bearer $RENDER_API_KEY" \
             "https://api.render.com/v1/services/$SERVICE_ID/deploys?limit=5")
             
-          PREVIOUS_DEPLOY_ID=$(echo "$RESPONSE" | jq -r '.[] | select(.status == "live") | .id' | head -n 1)
+          # FIX: Find the most recent deployment with status "success" (meaning the build completed), 
+          # take the first two, and select the SECOND ONE (index 1) which is the last known good version.
+          PREVIOUS_DEPLOY_ID=$(echo "$RESPONSE" | jq -r '.[] | select(.status == "success") | .id' | head -n 2 | tail -n 1)
           
           if [ -z "$PREVIOUS_DEPLOY_ID" ]; then
-            echo "🔴 Error: Could not find a previous 'live' deployment ID for rollback."
+            echo "🔴 Error: Could not find a previous 'success' deployment ID for rollback. Ensure you have two prior successful deployments in the history."
             exit 1
           fi
           
-          echo "Found previous LIVE deployment ID: $PREVIOUS_DEPLOY_ID"
+          echo "Found previous SUCCESS Deployment ID for rollback: $PREVIOUS_DEPLOY_ID"
           echo "PREVIOUS_DEPLOY_ID=$PREVIOUS_DEPLOY_ID" >> $GITHUB_OUTPUT
           
 
@@ -241,7 +241,7 @@ jobs:
             $RENDER_URL)
           
           if echo "$RESPONSE" | grep -q '"error":'; then
-              echo "🔴 Automated API Rollback Failed for Staging."
+              echo "🔴 Automated API Rollback Failed for Staging. (API Error)"
               echo "Response: $RESPONSE"
               exit 1
           else

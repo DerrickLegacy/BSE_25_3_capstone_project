@@ -57,5 +57,19 @@
   },
   "transform": {
     "^.+\\.[tj]sx?$": "babel-jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/DerrickLegacy/BSE_25_3_capstone_project.git"
+  },
+  "release": {
+    "branches": [
+      "main"
+    ],
+    "plugins": [
+      "@semantic-release/commit-analyzer",
+      "@semantic-release/release-notes-generator",
+      "@semantic-release/github"
+    ]
   }
 }

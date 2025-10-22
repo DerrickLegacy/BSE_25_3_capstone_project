@@ -1,14 +1,14 @@
 name: 🚀 Automated Version Release
 
 on:
-  push:
-    branches: ['main'] # Only run actual release on main
-  pull_request:
-    branches: ['main'] # Dry-run on PRs
+  workflow_run:
+    workflows: ['Node.js React CI']
+    types:
+      - completed
 
 jobs:
   release:
-    name: Run Semantic Release
+    name: Versioning Production
     runs-on: ubuntu-latest
 
     permissions:
@@ -17,65 +17,54 @@ jobs:
       pull-requests: write
 
     steps:
-      # --- Step 0: Checkout code ---
-      - name: 🧾 Checkout Repository
+      - name: Checkout repo
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Needed for semantic-release to read tags/history
+          fetch-depth: 0
 
-      # --- Step 1: Setup Node.js ---
-      - name: 🧩 Setup Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
-          cache: 'npm'
+          node-version: 22.14.0
 
-      # --- Step 2: Install dependencies ---
-      - name: 📦 Install Dependencies
+      - name: Install dependencies
         run: npm ci
 
-      # --- Step 3: Dry-run on PRs to detect next version ---
-      - name: 🔍 Dry-run Semantic Release (PRs)
-        if: github.event_name == 'pull_request'
+      - name: Run Semantic Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx semantic-release
+
+  append_version_to_file:
+    name: Append Version to File
+    runs-on: ubuntu-latest
+    needs: release
+
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get latest tag
+        id: get_tag
         run: |
-          echo "Running semantic-release dry-run for PR..."
-          npx semantic-release --dry-run > release_output.txt
-          cat release_output.txt
+          LATEST_TAG=$(git describe --tags --abbrev=0)
+          echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_ENV
+          echo "Latest tag: $LATEST_TAG"
 
-      # --- Step 4: Run actual semantic-release on main pushes ---
-      - name: 🚀 Perform Release (main branch)
-        if: github.ref == 'refs/heads/main'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Append version to version.txt
+        run: echo "$LATEST_TAG" >> version.txt
+
+      - name: Commit and push version.txt
         run: |
-          echo "Running semantic-release on main branch..."
-          # Detect next version
-          NEXT_VERSION=$(npx semantic-release --dry-run | grep -oE 'The next release version is [0-9]+\.[0-9]+\.[0-9]+' | awk '{print $6}')
-
-          if [ -z "$NEXT_VERSION" ]; then
-            echo "No new version detected. Skipping version files and release."
-            exit 0
-          fi
-
-          echo "Next version: $NEXT_VERSION"
-          DATE=$(date)
-          SHORT_COMMIT=$(git rev-parse --short HEAD)
-
-          # --- Update version.js (history) ---
-          echo "// Version: ${NEXT_VERSION} - Commit: ${SHORT_COMMIT} - ${DATE}" >> version.js
-          echo "console.log('Version ${NEXT_VERSION} (${SHORT_COMMIT}) released on ${DATE}');" >> version.js
-
-          # --- Update frontend version.json ---
-          echo "{ \"version\": \"${NEXT_VERSION}\", \"commit\": \"${SHORT_COMMIT}\", \"date\": \"${DATE}\" }" > client/public/version.json
-
-          # Commit version files
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add version.js client/public/version.json
-          git commit -m "chore: record release ${NEXT_VERSION} [skip ci]" || echo "No changes to commit"
-          git push origin HEAD:main
-
-          # --- Run semantic-release to create tag and GitHub release ---
-          npx semantic-release
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add version.txt
+          git commit -m "chore: append version $LATEST_TAG to version.txt" || echo "No changes to commit"
+          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} HEAD:main

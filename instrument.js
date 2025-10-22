@@ -7,17 +7,17 @@ const { nodeProfilingIntegration } = require('@sentry/profiling-node');
 
 // Initialize Sentry
 init({
-  dsn: process.env.SENTRY_DSN || 'https://your-sentry-dsn@sentry.io/project-id',
+  dsn: process.env.SENTRY_DSN || null, // Set to null if no DSN provided
   environment: process.env.NODE_ENV || 'development',
   tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
   profilesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
-  integrations: [
-    nodeProfilingIntegration(),
-  ],
+  integrations: [nodeProfilingIntegration()],
   // Capture unhandled promise rejections
   captureUnhandledRejections: true,
   // Capture uncaught exceptions
   captureUncaughtException: true,
+  // Debug mode for development
+  debug: process.env.NODE_ENV === 'development',
 });
 
 // Export Sentry functions for use in other files

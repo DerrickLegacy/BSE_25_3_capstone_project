@@ -269,6 +269,21 @@ app.get('/api/version', (req, res) => {
   res.json({ version: VERSION, environment: ENV });
 });
 
+// Test endpoint for error tracking
+app.get('/api/test-error', () => {
+  logger.info('Testing error tracking...');
+  const error = new Error('This is a test error for Sentry tracking');
+  captureException(error);
+  throw error;
+});
+
+// Test endpoint for Sentry message (non-error)
+app.get('/api/test-sentry', (req, res) => {
+  logger.info('Testing Sentry message tracking...');
+  captureMessage('This is a test message for Sentry tracking', 'info');
+  res.json({ message: 'Sentry message sent successfully' });
+});
+
 // =====================
 // Error Handling
 // =====================
@@ -283,8 +298,14 @@ app.use(errorLogger);
 const buildPath = path.join(__dirname, 'client', 'build');
 app.use(express.static(buildPath));
 
-app.get(/.*/, (req, res) => {
-  res.sendFile(path.join(buildPath, 'index.html'));
+// Catch-all handler: send back React's index.html file for any non-API routes
+app.use((req, res) => {
+  // Only serve React for non-API routes
+  if (!req.path.startsWith('/api/')) {
+    res.sendFile(path.join(buildPath, 'index.html'));
+  } else {
+    res.status(404).json({ error: 'API endpoint not found' });
+  }
 });
 
 // =====================
@@ -292,15 +313,17 @@ app.get(/.*/, (req, res) => {
 // =====================
 
 if (require.main === module) {
-  initializeDatabase().then(() => {
-    app.listen(app.get('port'), () => {
-      logger.info(`✅ Server running on port ${app.get('port')} [${ENV}]`);
+  initializeDatabase()
+    .then(() => {
+      app.listen(app.get('port'), () => {
+        logger.info(`✅ Server running on port ${app.get('port')} [${ENV}]`);
+      });
+    })
+    .catch((err) => {
+      logger.error('Failed to start server:', err);
+      captureException(err);
+      process.exit(1);
     });
-  }).catch((err) => {
-    logger.error('Failed to start server:', err);
-    captureException(err);
-    process.exit(1);
-  });
 }
 
 // =====================

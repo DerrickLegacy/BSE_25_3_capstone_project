@@ -68,6 +68,7 @@ const logger = winston.createLogger({
 
 // Create logs directory if it doesn't exist
 const fs = require('fs');
+
 const logsDir = path.join(__dirname, 'logs');
 if (!fs.existsSync(logsDir)) {
   fs.mkdirSync(logsDir, { recursive: true });
@@ -76,18 +77,18 @@ if (!fs.existsSync(logsDir)) {
 // Add request logging middleware
 const requestLogger = (req, res, next) => {
   const start = Date.now();
-  
+
   // Log the request
   logger.http(`${req.method} ${req.url} - ${req.ip}`);
-  
+
   // Override res.end to log response
   const originalEnd = res.end;
-  res.end = function(chunk, encoding) {
+  res.end = function logResponseEnd(chunk, encoding) {
     const duration = Date.now() - start;
     logger.http(`${req.method} ${req.url} - ${res.statusCode} - ${duration}ms`);
     originalEnd.call(this, chunk, encoding);
   };
-  
+
   next();
 };
 

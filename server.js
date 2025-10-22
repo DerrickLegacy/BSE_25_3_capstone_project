@@ -194,7 +194,9 @@ app.post('/api/notes', async (req, res) => {
   const { title, content } = req.body;
   if (!title) {
     logger.warn('Attempted to create note without title');
-    return res.status(400).json({ error: 'Title is required' });
+    const error = new Error('Title is required');
+    captureException(error); // Capture validation error in Sentry
+    return res.status(400).json({ error: error.message });
   }
 
   try {
@@ -218,7 +220,9 @@ app.put('/api/notes/:id', async (req, res) => {
 
   if (!title) {
     logger.warn(`Attempted to update note ${id} without title`);
-    return res.status(400).json({ error: 'Title is required' });
+    const error = new Error('Title is required');
+    captureException(error); // Capture validation error in Sentry
+    return res.status(400).json({ error: error.message });
   }
 
   try {
@@ -291,6 +295,17 @@ app.get('/api/test-sentry', (req, res) => {
 // Custom error handling middleware
 app.use(errorLogger);
 
+// Global error handler to ensure all errors are captured and returned consistently
+// This must have 4 args to be recognized by Express
+app.use((err, req, res, next) => {
+  const status = err.status || 500;
+  // Log and report to Sentry
+  logger.error(`${err.message} - ${req.method} ${req.url} - ${req.ip}`, { error: err.stack });
+  try { captureException(err); } catch (_) {}
+  if (res.headersSent) return next(err);
+  return res.status(status).json({ error: status === 500 ? 'Internal Server Error' : err.message });
+});
+
 // =====================
 // Serve React Frontend
 // =====================
@@ -315,6 +330,16 @@ app.use((req, res) => {
 if (require.main === module) {
   initializeDatabase()
     .then(() => {
+      // Capture unexpected process-level errors too
+      process.on('unhandledRejection', (reason) => {
+        try { captureException(reason instanceof Error ? reason : new Error(String(reason))); } catch (_) {}
+        logger.error('Unhandled Promise Rejection', { reason });
+      });
+      process.on('uncaughtException', (err) => {
+        try { captureException(err); } catch (_) {}
+        logger.error('Uncaught Exception', { error: err.stack || err.message });
+      });
+
       app.listen(app.get('port'), () => {
         logger.info(`✅ Server running on port ${app.get('port')} [${ENV}]`);
       });

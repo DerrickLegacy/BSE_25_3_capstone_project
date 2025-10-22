@@ -56,7 +56,7 @@ function Notes() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!title.trim()) return;
+    // if (!title.trim()) return; // Commented out client-side validation
 
     console.log('Form submitted:', { title, content, isEditing, currentNote });
 
@@ -187,7 +187,7 @@ function Notes() {
                   aria-label="Close"
                 />
               </div>
-              <form onSubmit={handleSubmit}>
+              <form onSubmit={handleSubmit} noValidate>
                 <div className="modal-body">
                   <div className="mb-3">
                     <label htmlFor="note-title" className="form-label">
@@ -200,7 +200,6 @@ function Notes() {
                       value={title}
                       onChange={(e) => setTitle(e.target.value)}
                       placeholder="Enter note title..."
-                      required
                     />
                   </div>
                   <div className="mb-3">

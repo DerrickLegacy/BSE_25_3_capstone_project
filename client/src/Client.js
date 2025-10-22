@@ -13,14 +13,50 @@ function parseJSON(response) {
   return response.json();
 }
 
-function search(query) {
-  console.log('Client Query:', query); // eslint-disable-line no-console
-  return fetch(`http://localhost:3001/api/books?firstName=${query}`, {
+// Get all notes
+function getNotes() {
+  return fetch('/api/notes', {
     accept: 'application/json',
   })
     .then(checkStatus)
     .then(parseJSON);
 }
 
-const Client = { search };
+// Create a new note
+function createNote(note) {
+  console.log('Client createNote called with:', note);
+  return fetch('/api/notes', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(note),
+  })
+    .then(checkStatus)
+    .then(parseJSON);
+}
+
+// Update a note
+function updateNote(id, note) {
+  return fetch(`/api/notes/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(note),
+  })
+    .then(checkStatus)
+    .then(parseJSON);
+}
+
+// Delete a note
+function deleteNote(id) {
+  return fetch(`/api/notes/${id}`, {
+    method: 'DELETE',
+  })
+    .then(checkStatus)
+    .then(parseJSON);
+}
+
+const Client = { getNotes, createNote, updateNote, deleteNote };
 export default Client;

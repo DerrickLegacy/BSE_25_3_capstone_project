@@ -42,8 +42,6 @@ jobs:
 
     permissions:
       contents: write
-      issues: write
-      pull-requests: write
 
     steps:
       - name: Checkout repo
@@ -61,10 +59,18 @@ jobs:
       - name: Append version to version.txt
         run: echo "$LATEST_TAG" >> version.txt
 
-      - name: Commit and push version.txt
+      - name: Commit and push version.txt safely
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+          # Fetch latest changes and rebase to avoid non-fast-forward
+          git fetch origin main
+          git rebase origin/main || echo "Rebase conflicts? Skipping rebase"
+
+          # Stage and commit if there are changes
           git add version.txt
-          git commit -m "chore: append version $LATEST_TAG to version.txt" || echo "No changes to commit"
+          git diff --cached --quiet || git commit -m "chore: append version $LATEST_TAG to version.txt"
+
+          # Push safely
           git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} HEAD:main

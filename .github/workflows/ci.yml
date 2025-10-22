@@ -113,6 +113,17 @@ jobs:
           api_key: ${{ secrets.RENDER_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
+          contiinue-on-error: true 
+      - name: Revert main to previous commit if deploy fails
+        if: steps.deploy.outcome == 'failure'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
+          PREV_COMMIT=$(git rev-parse origin/main^)
+          git checkout $PREV_COMMIT
+          git push origin HEAD:main --force
+
       #15. Deploy Production
       # - name: Deploy to Render (Production)
       #   if: success() && github.ref == 'refs/heads/main'

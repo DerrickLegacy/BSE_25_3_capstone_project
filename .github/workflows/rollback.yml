@@ -1,0 +1,23 @@
+name: 🔄 Rollback Main to Tag
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Git tag to roll back to (e.g., v1.2.3)'
+        required: true
+
+jobs:
+  rollback:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code at selected tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag }}
+
+      - name: Force push tag to main
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git push origin HEAD:main --force

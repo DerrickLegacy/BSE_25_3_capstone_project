@@ -240,20 +240,18 @@ app.delete('/api/notes/:id', async (req, res) => {
 });
 
 // // health check
-// app.get('/health', async (req, res) => {
+// Before (The working code):
+// app.get('/health', (req, res) => {
+//   // Good response, returns 200
+//   res.status(200).send('OK'); 
+// });
 
-//     // ===============================================
-//     // 🔥 START: TEMPORARY CODE TO TEST ROLLBACK FAILURE
-//     // ===============================================
-//     // This looks for the environment variable we set on the Render test service
-//     if (process.env.ROLLBACK_TEST_FAIL === 'true') {
-//         console.error("Rollback Test Triggered: Intentionally returning 503.");
-//         // Returning a non-200 status code immediately fails the CI health check
-//         return res.status(503).json({
-//             status: 'UNHEALTHY',
-//             error: 'DELIBERATE FAILURE: Testing automated rollback.'
-//         });
-//     }
+// After (The BAD code you must commit):
+app.get('/health', (req, res) => {
+  // BAD RESPONSE: Will cause the health-check job to fail
+  console.log("HEALTH CHECK IS INTENTIONALLY FAILING TO TEST ROLLBACK!");
+  res.status(500).send('Intentional Rollback Test Failure'); 
+});
 
 app.get('/api/version', (req, res) => {
   res.json({ version: VERSION, environment: ENV });

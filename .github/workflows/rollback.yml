@@ -1,0 +1,55 @@
+name: 🔁 Auto Rollback on Failed Deployment
+
+on:
+  workflow_run:
+    workflows: ['Node.js React CI']
+    types:
+      - completed
+
+jobs:
+  rollback:
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📦 Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🏷️ Find Previous Version Tag
+        id: prev
+        run: |
+          echo "Finding previous version..."
+          git fetch --tags
+          latest=$(git describe --tags --abbrev=0)
+          echo "Latest tag: $latest"
+
+          previous=$(git tag --sort=-creatordate | sed -n '2p')
+          echo "Previous tag: $previous"
+
+          if [ -z "$previous" ]; then
+            echo "No previous tag found. Exiting..."
+            exit 1
+          fi
+
+          echo "previous_tag=$previous" >> $GITHUB_OUTPUT
+
+      - name: 🔁 Roll Back to Previous Tag
+        run: |
+          echo "Rolling back to version ${{ steps.prev.outputs.previous_tag }}"
+          git checkout ${{ steps.prev.outputs.previous_tag }}
+          echo "✅ Checked out previous version"
+
+      - name: 🚀 Redeploy Previous Version
+        run: |
+          echo "Simulating redeploy of ${{ steps.prev.outputs.previous_tag }}"
+          # Here you could run npm run deploy, docker build/push, etc.
+          echo "✅ Redeployment simulated"
+
+      - name: 📝 Create Rollback Issue
+        uses: peter-evans/create-issue-from-file@v6
+        with:
+          title: '🚨 Rollback to ${{ steps.prev.outputs.previous_tag }} due to Failed Deployment'
+          content-filepath: rollback_issue.md
+          labels: bug, rollback

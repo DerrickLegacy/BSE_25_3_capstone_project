@@ -6,6 +6,7 @@
 require('dotenv').config();
 const express = require('express');
 const { Pool } = require('pg');
+const fs = require('fs');
 const path = require('path');
 const promClient = require('prom-client');
 
@@ -241,6 +242,26 @@ app.delete('/api/notes/:id', async (req, res) => {
 
 app.get('/api/version', (req, res) => {
   res.json({ version: VERSION, environment: ENV });
+});
+
+// Serve application version
+app.get('/api/application-version', (req, res) => {
+  const versionFilePath = path.join(__dirname, 'version.txt'); // adjust if file is elsewhere
+
+  fs.readFile(versionFilePath, 'utf8', (err, data) => {
+    if (err) {
+      console.error('Error reading version file:', err);
+      return res.status(500).json({ error: 'Could not read version file' });
+    }
+
+    // Convert file content to array of versions
+    const versions = data
+      .split('\n') // split by new line
+      .map((v) => v.trim()) // remove extra spaces
+      .filter(Boolean); // remove empty lines
+
+    return res.json({ versions }); // return as JSON array
+  });
 });
 
 // =====================

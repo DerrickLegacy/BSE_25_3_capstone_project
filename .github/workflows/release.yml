@@ -2,7 +2,7 @@ name: 🚀 Automated Version Release
 
 on:
   push:
-    branches: ['main']
+    branches: ['**'] # Trigger on all branches
   pull_request:
     branches: ['main']
 

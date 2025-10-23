@@ -1,8 +1,20 @@
--- Create the database (you don't need this in Render, since Render creates the DB for you)
--- CREATE DATABASE books;
+-- Enable dblink for conditional DB creation
+CREATE EXTENSION IF NOT EXISTS dblink;
 
--- Switch to database (not needed on Render either)
--- \c books;
+-- Create the "books" database only if it doesn't exist
+DO
+$$
+BEGIN
+   IF NOT EXISTS (
+      SELECT FROM pg_database WHERE datname = 'books'
+   ) THEN
+      PERFORM dblink_exec('dbname=postgres', 'CREATE DATABASE books');
+   END IF;
+END
+$$;
+
+-- Connect to the books database
+\connect books;
 
 -- Create table
 CREATE TABLE authors (

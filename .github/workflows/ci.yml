@@ -104,14 +104,11 @@ jobs:
         run: npm run build
         working-directory: client
 
-      # 14. Deploy to Render Staging
-      # - name: Deploy to Render (Staging)
-      #   if: success() && github.ref == 'refs/heads/staging'
-      #   uses: JorgeLNJunior/render-deploy@v1.4.6
-      #   with:
-      #     service_id: ${{ secrets.RENDER_SERVICE_ID }}
-      #     api_key: ${{ secrets.RENDER_API_KEY }}
-      #     github_token: ${{ secrets.GITHUB_TOKEN }}
+      #14. Force pipeline fail intentionally for rollback testing
+      # - name: Force failure (test rollback)
+      #   run: |
+      #     echo "This is a test failure to trigger rollback"
+      #     exit 1
 
   deploy-staging:
     runs-on: ubuntu-latest
@@ -123,15 +120,6 @@ jobs:
           echo "Triggering Staging Deployment via Hook..."
           # Simplified: Always use the deploy hook for consistency
           curl -X POST "${{ secrets.RENDER_STAGING_DEPLOY_HOOK }}"
-
-      #15. Deploy Production
-      # - name: Deploy to Render (Production)
-      #   if: success() && github.ref == 'refs/heads/main'
-      #   uses: JorgeLNJunior/render-deploy@v1.4.6
-      #   with:
-      #     service_id: ${{ secrets.RENDER_PROD_SERVICE_ID }}
-      #     api_key: ${{ secrets.RENDER_API_KEY }}
-      #     github_token: ${{ secrets.GITHUB_TOKEN }}
 
   deploy-prod:
     runs-on: ubuntu-latest

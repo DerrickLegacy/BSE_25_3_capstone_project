@@ -301,10 +301,18 @@ app.use(errorLogger);
 app.use((err, req, res, next) => {
   const status = err.status || 500;
   // Log and report to Sentry
-  logger.error(`${err.message} - ${req.method} ${req.url} - ${req.ip}`, { error: err.stack });
-  try { captureException(err); } catch (_) {}
+  logger.error(`${err.message} - ${req.method} ${req.url} - ${req.ip}`, {
+    error: err.stack,
+  });
+  try {
+    captureException(err);
+  } catch (_) {
+    // intentionally ignored
+  }
   if (res.headersSent) return next(err);
-  return res.status(status).json({ error: status === 500 ? 'Internal Server Error' : err.message });
+  return res
+    .status(status)
+    .json({ error: status === 500 ? 'Internal Server Error' : err.message });
 });
 // Serve application version
 app.get('/api/application-version', (req, res) => {
@@ -352,11 +360,21 @@ if (require.main === module) {
     .then(() => {
       // Capture unexpected process-level errors too
       process.on('unhandledRejection', (reason) => {
-        try { captureException(reason instanceof Error ? reason : new Error(String(reason))); } catch (_) {}
+        try {
+          captureException(
+            reason instanceof Error ? reason : new Error(String(reason))
+          );
+        } catch (_) {
+          // intentionally ignored
+        }
         logger.error('Unhandled Promise Rejection', { reason });
       });
       process.on('uncaughtException', (err) => {
-        try { captureException(err); } catch (_) {}
+        try {
+          captureException(err);
+        } catch (_) {
+          // intentionally ignored
+        }
         logger.error('Uncaught Exception', { error: err.stack || err.message });
       });
 

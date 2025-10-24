@@ -121,6 +121,15 @@ jobs:
           # Simplified: Always use the deploy hook for consistency
           curl -X POST "${{ secrets.RENDER_STAGING_DEPLOY_HOOK }}"
 
+      #15. Deploy Production
+      # - name: Deploy to Render (Production)
+      #   if: success() && github.ref == 'refs/heads/main'
+      #   uses: JorgeLNJunior/render-deploy@v1.4.6
+      #   with:
+      #     service_id: ${{ secrets.RENDER_PROD_SERVICE_ID }}
+      #     api_key: ${{ secrets.RENDER_API_KEY }}
+      #     github_token: ${{ secrets.GITHUB_TOKEN }}
+
   deploy-prod:
     runs-on: ubuntu-latest
     needs: build-and-test
@@ -130,3 +139,22 @@ jobs:
         run: |
           echo "Staging Validation Passed. Triggering FINAL Production Deployment..."
           curl -X POST "${{ secrets.RENDER_PROD_DEPLOY_HOOK }}"
+
+      - name: Notify Deployment Success
+        uses: actions/github-script@v6
+        if: success()
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const issueTitle = '✅ Deployment Successful';
+            const issueBody = `The deployment to production was successful.\n\n- **Commit:** ${process.env.GITHUB_SHA}\n- **Deployed by:** @${process.env.GITHUB_ACTOR}\n- **Timestamp:** ${new Date().toISOString()}`;
+            await github.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: issueTitle,
+              body: issueBody,
+            });
+      - name: Fail Deployment
+        run: |
+          echo "Deployment failed. Exiting with error."
+          exit 1

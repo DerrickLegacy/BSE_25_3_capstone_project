@@ -4,17 +4,23 @@
 
 // Load environment variables
 require('dotenv').config();
+
+// Initialize Sentry first (before any other imports)
+require('./instrument');
+
 const express = require('express');
 const { Pool } = require('pg');
 const fs = require('fs');
 const path = require('path');
 const promClient = require('prom-client');
+const { logger, requestLogger, errorLogger } = require('./logger');
+const { captureException, captureMessage } = require('./instrument');
 
 const app = express();
 
 const VERSION = process.env.VERSION || 'latest';
 const ENV = process.env.NODE_ENV || 'development';
-console.log(`Server starting — environment: ${ENV}, version: ${VERSION}`);
+logger.info(`Server starting — environment: ${ENV}, version: ${VERSION}`);
 
 // Create a Registry to register metrics
 const register = new promClient.Registry();
@@ -45,6 +51,9 @@ app.use((req, res, next) => {
 // =====================
 // Middleware
 // =====================
+
+// Request logging middleware
+app.use(requestLogger);
 
 // Enable CORS
 app.use((req, res, next) => {
@@ -79,7 +88,8 @@ const pool = new Pool({
 });
 
 pool.on('error', (err) => {
-  console.error('Unexpected error on idle client', err);
+  logger.error('Unexpected error on idle client', err);
+  captureException(err);
   process.exit(-1);
 });
 
@@ -111,23 +121,24 @@ const initializeDatabase = async () => {
     const count = parseInt(result.rows[0].count, 10);
 
     if (count === 0) {
-      console.log('Adding sample notes...');
+      logger.info('Adding sample notes...');
       await client.query(`
         INSERT INTO notes (title, content) VALUES 
         ('Welcome to Notes App', 'This is your first note! You can create, edit, and delete notes here.'),
         ('Meeting Notes', 'Remember to discuss the project timeline and deliverables.'),
         ('Shopping List', 'Milk, Bread, Eggs, Coffee');
       `);
-      console.log('Sample notes added successfully!');
+      logger.info('Sample notes added successfully!');
     } else {
-      console.log(
+      logger.info(
         `Notes table already has ${count} records — skipping sample data.`
       );
     }
 
     dbInitialized = true;
   } catch (err) {
-    console.error('Error initializing database:', err.stack);
+    logger.error('Error initializing database:', err);
+    captureException(err);
   } finally {
     client.release();
   }
@@ -138,7 +149,7 @@ const initializeDatabase = async () => {
 // =====================
 // Metrics endpoint for Prometheus to scrape
 app.get('/metrics', async (req, res) => {
-  console.log('Loading metrics');
+  logger.debug('Loading metrics');
   res.setHeader('Content-Type', register.contentType);
   res.setHeader('Cache-Control', 'no-store');
   res.send(await register.metrics());
@@ -150,9 +161,11 @@ app.get('/api/notes', async (req, res) => {
     const { rows } = await pool.query(
       'SELECT * FROM notes ORDER BY updated_at DESC'
     );
+    logger.info(`Retrieved ${rows.length} notes`);
     return res.json(rows);
   } catch (err) {
-    console.error('DB Query Error:', err);
+    logger.error('DB Query Error:', err);
+    captureException(err);
     return res.status(500).json({ error: err.message });
   }
 });
@@ -165,11 +178,14 @@ app.get('/api/notes/:id', async (req, res) => {
       id,
     ]);
     if (rows.length === 0) {
+      logger.warn(`Note with id ${id} not found`);
       return res.status(404).json({ error: 'Note not found' });
     }
+    logger.info(`Retrieved note with id ${id}`);
     return res.json(rows[0]);
   } catch (err) {
-    console.error('DB Query Error:', err);
+    logger.error('DB Query Error:', err);
+    captureException(err);
     return res.status(500).json({ error: err.message });
   }
 });
@@ -178,7 +194,10 @@ app.get('/api/notes/:id', async (req, res) => {
 app.post('/api/notes', async (req, res) => {
   const { title, content } = req.body;
   if (!title) {
-    return res.status(400).json({ error: 'Title is required' });
+    logger.warn('Attempted to create note without title');
+    const error = new Error('Title is required');
+    captureException(error); // Capture validation error in Sentry
+    return res.status(400).json({ error: error.message });
   }
 
   try {
@@ -186,9 +205,11 @@ app.post('/api/notes', async (req, res) => {
       'INSERT INTO notes (title, content) VALUES ($1, $2) RETURNING *',
       [title, content || '']
     );
+    logger.info(`Created new note with id ${rows[0].id}`);
     return res.status(201).json(rows[0]);
   } catch (err) {
-    console.error('DB Query Error:', err);
+    logger.error('DB Query Error:', err);
+    captureException(err);
     return res.status(500).json({ error: err.message });
   }
 });
@@ -199,7 +220,10 @@ app.put('/api/notes/:id', async (req, res) => {
   const { title, content } = req.body;
 
   if (!title) {
-    return res.status(400).json({ error: 'Title is required' });
+    logger.warn(`Attempted to update note ${id} without title`);
+    const error = new Error('Title is required');
+    captureException(error); // Capture validation error in Sentry
+    return res.status(400).json({ error: error.message });
   }
 
   try {
@@ -209,12 +233,15 @@ app.put('/api/notes/:id', async (req, res) => {
     );
 
     if (rows.length === 0) {
+      logger.warn(`Note with id ${id} not found for update`);
       return res.status(404).json({ error: 'Note not found' });
     }
 
+    logger.info(`Updated note with id ${id}`);
     return res.json(rows[0]);
   } catch (err) {
-    console.error('DB Query Error:', err);
+    logger.error('DB Query Error:', err);
+    captureException(err);
     return res.status(500).json({ error: err.message });
   }
 });
@@ -230,12 +257,15 @@ app.delete('/api/notes/:id', async (req, res) => {
     );
 
     if (rows.length === 0) {
+      logger.warn(`Note with id ${id} not found for deletion`);
       return res.status(404).json({ error: 'Note not found' });
     }
 
+    logger.info(`Deleted note with id ${id}`);
     return res.json({ message: 'Note deleted successfully' });
   } catch (err) {
-    console.error('DB Query Error:', err);
+    logger.error('DB Query Error:', err);
+    captureException(err);
     return res.status(500).json({ error: err.message });
   }
 });
@@ -244,6 +274,46 @@ app.get('/api/version', (req, res) => {
   res.json({ version: VERSION, environment: ENV });
 });
 
+// Test endpoint for error tracking
+app.get('/api/test-error', () => {
+  logger.info('Testing error tracking...');
+  const error = new Error('This is a test error for Sentry tracking');
+  captureException(error);
+  throw error;
+});
+
+// Test endpoint for Sentry message (non-error)
+app.get('/api/test-sentry', (req, res) => {
+  logger.info('Testing Sentry message tracking...');
+  captureMessage('This is a test message for Sentry tracking', 'info');
+  res.json({ message: 'Sentry message sent successfully' });
+});
+
+// =====================
+// Error Handling
+// =====================
+
+// Custom error handling middleware
+app.use(errorLogger);
+
+// Global error handler to ensure all errors are captured and returned consistently
+// This must have 4 args to be recognized by Express
+app.use((err, req, res, next) => {
+  const status = err.status || 500;
+  // Log and report to Sentry
+  logger.error(`${err.message} - ${req.method} ${req.url} - ${req.ip}`, {
+    error: err.stack,
+  });
+  try {
+    captureException(err);
+  } catch (_) {
+    // intentionally ignored
+  }
+  if (res.headersSent) return next(err);
+  return res
+    .status(status)
+    .json({ error: status === 500 ? 'Internal Server Error' : err.message });
+});
 // Serve application version
 app.get('/api/application-version', (req, res) => {
   const versionFilePath = path.join(__dirname, 'version.txt'); // adjust if file is elsewhere
@@ -271,8 +341,14 @@ app.get('/api/application-version', (req, res) => {
 const buildPath = path.join(__dirname, 'client', 'build');
 app.use(express.static(buildPath));
 
-app.get(/.*/, (req, res) => {
-  res.sendFile(path.join(buildPath, 'index.html'));
+// Catch-all handler: send back React's index.html file for any non-API routes
+app.use((req, res) => {
+  // Only serve React for non-API routes
+  if (!req.path.startsWith('/api/')) {
+    res.sendFile(path.join(buildPath, 'index.html'));
+  } else {
+    res.status(404).json({ error: 'API endpoint not found' });
+  }
 });
 
 // =====================
@@ -280,11 +356,37 @@ app.get(/.*/, (req, res) => {
 // =====================
 
 if (require.main === module) {
-  initializeDatabase().then(() => {
-    app.listen(app.get('port'), () => {
-      console.log(`✅ Server running on port ${app.get('port')} [${ENV}]`);
+  initializeDatabase()
+    .then(() => {
+      // Capture unexpected process-level errors too
+      process.on('unhandledRejection', (reason) => {
+        try {
+          captureException(
+            reason instanceof Error ? reason : new Error(String(reason))
+          );
+        } catch (_) {
+          // intentionally ignored
+        }
+        logger.error('Unhandled Promise Rejection', { reason });
+      });
+      process.on('uncaughtException', (err) => {
+        try {
+          captureException(err);
+        } catch (_) {
+          // intentionally ignored
+        }
+        logger.error('Uncaught Exception', { error: err.stack || err.message });
+      });
+
+      app.listen(app.get('port'), () => {
+        logger.info(`✅ Server running on port ${app.get('port')} [${ENV}]`);
+      });
+    })
+    .catch((err) => {
+      logger.error('Failed to start server:', err);
+      captureException(err);
+      process.exit(1);
     });
-  });
 }
 
 // =====================

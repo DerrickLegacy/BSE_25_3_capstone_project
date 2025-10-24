@@ -59,7 +59,7 @@ jobs:
           echo "**Workflow run ID:** ${{ github.run_id }}" >> rollback_issue.md
           echo "**Triggered by workflow:** Node.js React CI" >> rollback_issue.md
           echo "**Timestamp:** $(date)" >> rollback_issue.md
-          echo "Please review the deployment and investigate the cause of failure." >> rollback_issue.md
+          echo "Please review the deployment and investigate the cause of failure. ok" >> rollback_issue.md
 
       - name: 📝 Create Rollback Issue
         uses: peter-evans/create-issue-from-file@v6

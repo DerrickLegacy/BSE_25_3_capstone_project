@@ -34,6 +34,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npx semantic-release
+
   append_version_to_file:
     name: Append Version to File
     runs-on: ubuntu-latest
@@ -47,6 +48,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          clean: true # ✅ ensures no leftover files or unstaged changes
 
       - name: Get latest tag
         id: get_tag
@@ -56,7 +58,13 @@ jobs:
           echo "Latest tag: $LATEST_TAG"
 
       - name: Append version to version.txt
-        run: echo "$LATEST_TAG" >> version.txt
+        run: |
+          if ! grep -qx "$LATEST_TAG" version.txt; then
+            echo "$LATEST_TAG" >> version.txt
+            echo "Added version $LATEST_TAG to version.txt"
+          else
+            echo "Version $LATEST_TAG already exists in version.txt, skipping."
+          fi
 
       - name: Commit and push version.txt safely
         run: |
@@ -64,22 +72,17 @@ jobs:
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
 
-          # Ensure workspace is clean before rebase
-          git add version.txt
-          git stash push -m "temp-changes" || echo "Nothing to stash"
-
-          # Get the latest remote commits
           git fetch origin main
 
-          # Rebase or reset if rebase fails
-          git rebase origin/main || git reset --merge origin/main
+          # Ensure branch is up to date
+          git checkout main
+          git reset --hard origin/main
 
-          # Restore stashed changes
-          git stash pop || echo "No stash to pop"
-
-          # Stage and commit version.txt if changed
+          # Stage and commit if there are changes
           git add version.txt
-          git diff --cached --quiet || git commit -m "chore: append version $LATEST_TAG to version.txt"
-
-          # Push safely (force-with-lease ensures no overwriting)
-          git push --force-with-lease https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} HEAD:main
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: append version $LATEST_TAG to version.txt"
+            git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} HEAD:main
+          else
+            echo "No changes to commit, skipping push."
+          fi

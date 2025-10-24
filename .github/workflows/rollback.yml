@@ -48,6 +48,9 @@ jobs:
           echo "Simulating redeploy of ${{ steps.prev.outputs.previous_tag }}"
           # Replace the next line with your real deploy command if needed
           echo "✅ Redeployment simulated"
+      - name: Generate rollback issue file
+        run: |
+          echo "Rollback triggered" >> ./rollback_issue.md
 
       - name: Generate rollback issue file
         run: |

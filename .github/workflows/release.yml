@@ -6,10 +6,15 @@ on:
     types:
       - completed
 
+concurrency:
+  group: automated-version-release
+  cancel-in-progress: true
+
 jobs:
   release:
     name: Versioning Production
     runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
     permissions:
       contents: write
@@ -17,20 +22,21 @@ jobs:
       pull-requests: write
 
     steps:
-      - name: Checkout repo
+      - name: 🧾 Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          clean: true
 
-      - name: Setup Node.js
+      - name: 🧩 Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22.14.0
 
-      - name: Install dependencies
+      - name: 📦 Install dependencies
         run: npm ci
 
-      - name: Run Semantic Release
+      - name: 🚀 Run Semantic Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npx semantic-release
@@ -39,50 +45,50 @@ jobs:
     name: Append Version to File
     runs-on: ubuntu-latest
     needs: release
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
     permissions:
       contents: write
 
     steps:
-      - name: Checkout repo
+      - name: 🧾 Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
           clean: true # ✅ ensures no leftover files or unstaged changes
 
-      - name: Get latest tag
+      - name: 🏷️ Get latest tag
         id: get_tag
         run: |
           LATEST_TAG=$(git describe --tags --abbrev=0)
           echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_ENV
           echo "Latest tag: $LATEST_TAG"
 
-      - name: Append version to version.txt
+      - name: 📝 Append version to version.txt
         run: |
           if ! grep -qx "$LATEST_TAG" version.txt; then
             echo "$LATEST_TAG" >> version.txt
-            echo "Added version $LATEST_TAG to version.txt"
+            echo "✅ Added version $LATEST_TAG to version.txt"
           else
-            echo "Version $LATEST_TAG already exists in version.txt, skipping."
+            echo "⚠️ Version $LATEST_TAG already exists in version.txt, skipping."
           fi
 
-      - name: Commit and push version.txt safely
+      - name: 💾 Commit and push version.txt safely
         run: |
           set -e
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
 
+          # Sync with remote
           git fetch origin main
-
-          # Ensure branch is up to date
           git checkout main
           git reset --hard origin/main
 
-          # Stage and commit if there are changes
+          # Stage and commit only if there are changes
           git add version.txt
           if ! git diff --cached --quiet; then
             git commit -m "chore: append version $LATEST_TAG to version.txt"
             git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} HEAD:main
           else
-            echo "No changes to commit, skipping push."
+            echo "🟢 No changes to commit, skipping push."
           fi

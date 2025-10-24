@@ -34,7 +34,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npx semantic-release
-
   append_version_to_file:
     name: Append Version to File
     runs-on: ubuntu-latest
@@ -61,16 +60,26 @@ jobs:
 
       - name: Commit and push version.txt safely
         run: |
+          set -e
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
 
-          # Fetch latest changes and rebase to avoid non-fast-forward
-          git fetch origin main
-          git rebase origin/main || echo "Rebase conflicts? Skipping rebase"
+          # Ensure workspace is clean before rebase
+          git add version.txt
+          git stash push -m "temp-changes" || echo "Nothing to stash"
 
-          # Stage and commit if there are changes
+          # Get the latest remote commits
+          git fetch origin main
+
+          # Rebase or reset if rebase fails
+          git rebase origin/main || git reset --merge origin/main
+
+          # Restore stashed changes
+          git stash pop || echo "No stash to pop"
+
+          # Stage and commit version.txt if changed
           git add version.txt
           git diff --cached --quiet || git commit -m "chore: append version $LATEST_TAG to version.txt"
 
-          # Push safely
-          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} HEAD:main
+          # Push safely (force-with-lease ensures no overwriting)
+          git push --force-with-lease https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} HEAD:main

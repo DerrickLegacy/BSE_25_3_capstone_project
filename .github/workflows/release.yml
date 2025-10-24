@@ -55,7 +55,7 @@ jobs:
           echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_ENV
           echo "Latest tag: $LATEST_TAG"
 
-      - name: Append version to version.txt
+      - name: Append version to version.txt file
         run: echo "$LATEST_TAG" >> version.txt
 
       - name: Commit and push version.txt safely

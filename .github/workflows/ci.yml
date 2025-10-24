@@ -139,3 +139,22 @@ jobs:
         run: |
           echo "Staging Validation Passed. Triggering FINAL Production Deployment..."
           curl -X POST "${{ secrets.RENDER_PROD_DEPLOY_HOOK }}"
+
+      - name: Notify Deployment Success
+        uses: actions/github-script@v6
+        if: success()
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const issueTitle = '✅ Deployment Successful';
+            const issueBody = `The deployment to production was successful.\n\n- **Commit:** ${process.env.GITHUB_SHA}\n- **Deployed by:** @${process.env.GITHUB_ACTOR}\n- **Timestamp:** ${new Date().toISOString()}`;
+            await github.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: issueTitle,
+              body: issueBody,
+            });
+      - name: Fail Deployment
+        run: |
+          echo "Deployment failed. Exiting with error."
+          exit 1

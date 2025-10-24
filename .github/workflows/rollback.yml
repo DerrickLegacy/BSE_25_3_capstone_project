@@ -37,18 +37,13 @@ jobs:
           echo "Previous tag: $previous"
           echo "previous_tag=$previous" >> $GITHUB_OUTPUT
 
-      - name: 🔁 Roll Back to Previous Tag
+      - name: 🔁 Roll Back to Previous Tag- CI
         run: |
           echo "Rolling back to version ${{ steps.prev.outputs.previous_tag }}"
           git checkout ${{ steps.prev.outputs.previous_tag }}
           echo "✅ Checked out previous version"
 
-      - name: 🚀 Redeploy Previous Version
-        run: |
-          echo "Simulating redeploy of ${{ steps.prev.outputs.previous_tag }}"
-          # Replace the next line with your real deploy command if needed
-          echo "✅ Redeployment simulated"
-      - name: Generate rollback issue file
+      - name: Generate rollback issue file if it doesnt exist
         run: |
           echo "Rollback triggered" >> ./rollback_issue.md
 
@@ -59,7 +54,7 @@ jobs:
           echo "**Workflow run ID:** ${{ github.run_id }}" >> rollback_issue.md
           echo "**Triggered by workflow:** Node.js React CI" >> rollback_issue.md
           echo "**Timestamp:** $(date)" >> rollback_issue.md
-          echo "Please review the deployment and investigate the cause of failure. ok" >> rollback_issue.md
+          echo "Please review the deployment and investigate the cause of failure in our system. ok" >> rollback_issue.md
 
       - name: 📝 Create Rollback Issue
         uses: peter-evans/create-issue-from-file@v6

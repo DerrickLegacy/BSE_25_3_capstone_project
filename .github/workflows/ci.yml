@@ -36,7 +36,7 @@ jobs:
     steps:
       - name: Fail Deployment
         run: |
-          echo "Deployment failed. Exiting with error."
+          echo "Deployment failed,,,,. Exiting with error."
           exit 1
       # 1. Checkout code
       - name: Checkout code

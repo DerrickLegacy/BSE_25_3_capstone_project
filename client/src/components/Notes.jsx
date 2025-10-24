@@ -137,6 +137,36 @@ function Notes() {
             <Button color="primary" onClick={() => openModal()}>
               + New Note
             </Button>
+            {process.env.NODE_ENV === 'development' && (
+              <Button
+                color="warning"
+                size="sm"
+                onClick={() => {
+                  const error = new Error(
+                    'Test frontend error for Sentry logging'
+                  );
+                  console.error('Test frontend error:', error);
+                  window.Sentry?.captureException(error, {
+                    tags: {
+                      test: true,
+                      component: 'Notes',
+                      action: 'test-error',
+                    },
+                    extra: {
+                      message:
+                        'This is a test error to verify frontend Sentry integration',
+                      timestamp: new Date().toISOString(),
+                    },
+                  });
+                  console.log(
+                    '✅ Test error sent to Sentry! Check your dashboard.'
+                  );
+                }}
+                className="ms-2"
+              >
+                🧪 Test Error
+              </Button>
+            )}
           </div>
         </Col>
       </Row>

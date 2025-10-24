@@ -13,6 +13,7 @@ const { Pool } = require('pg');
 const fs = require('fs');
 const path = require('path');
 const promClient = require('prom-client');
+const Sentry = require('@sentry/node');
 const { logger, requestLogger, errorLogger } = require('./logger');
 const { captureException, captureMessage } = require('./instrument');
 
@@ -272,6 +273,34 @@ app.delete('/api/notes/:id', async (req, res) => {
 
 app.get('/api/version', (req, res) => {
   res.json({ version: VERSION, environment: ENV });
+});
+
+// Test endpoints for Sentry error logging
+app.get('/api/test-error', (req, res) => {
+  const error = new Error('Test backend error for Sentry logging');
+  console.error('Test error triggered:', error.message);
+  Sentry.captureException(error, {
+    tags: {
+      test: true,
+      endpoint: '/api/test-error',
+      method: 'GET',
+    },
+    extra: {
+      message: 'This is a test error to verify Sentry integration',
+      timestamp: new Date().toISOString(),
+    },
+  });
+  res.status(500).json({
+    error: 'Test error sent to Sentry',
+    message: 'Check your Sentry dashboard for this error',
+  });
+});
+
+app.get('/api/test-crash', () => {
+  // This will cause an actual server crash that Sentry should catch
+  throw new Error(
+    'Test server crash for Sentry - this should appear in your dashboard'
+  );
 });
 
 // Test endpoint for error tracking

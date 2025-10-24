@@ -1,4 +1,5 @@
 import { call, put, takeEvery } from 'redux-saga/effects';
+import * as Sentry from '@sentry/react';
 import Client from './Client';
 import { setNotes, addNote, updateNote, removeNote } from './Actions';
 
@@ -8,34 +9,39 @@ function* fetchNotes() {
     yield put(setNotes(notes));
   } catch (error) {
     console.error('Error fetching notes:', error);
+    Sentry.captureException(error, {
+      tags: { section: 'notes', action: 'fetch' },
+    });
   }
 }
 
 function* createNote(action) {
   try {
-    console.log('Saga createNote called with:', action.payload);
     const newNote = yield call(Client.createNote, action.payload);
-    console.log('Note created successfully:', newNote);
     yield put(addNote(newNote));
-    console.log('addNote action dispatched');
   } catch (error) {
     console.error('Error creating note:', error);
+    Sentry.captureException(error, {
+      tags: { section: 'notes', action: 'create' },
+      extra: { noteData: action.payload },
+    });
   }
 }
 
 function* updateNoteSaga(action) {
   try {
-    console.log('Saga updateNoteSaga called with:', action.payload);
     const updatedNote = yield call(
       Client.updateNote,
       action.payload.id,
       action.payload
     );
-    console.log('Note updated successfully:', updatedNote);
     yield put(updateNote(updatedNote));
-    console.log('updateNote action dispatched');
   } catch (error) {
     console.error('Error updating note:', error);
+    Sentry.captureException(error, {
+      tags: { section: 'notes', action: 'update' },
+      extra: { noteData: action.payload },
+    });
   }
 }
 
@@ -45,6 +51,10 @@ function* deleteNote(action) {
     yield put(removeNote(action.payload));
   } catch (error) {
     console.error('Error deleting note:', error);
+    Sentry.captureException(error, {
+      tags: { section: 'notes', action: 'delete' },
+      extra: { noteId: action.payload },
+    });
   }
 }
 

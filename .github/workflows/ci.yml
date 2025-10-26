@@ -140,17 +140,27 @@ jobs:
           echo "Staging Validation Passed. Triggering FINAL Production Deployment..."
           curl -X POST "${{ secrets.RENDER_PROD_DEPLOY_HOOK }}"
 
-      - name: Notify Deployment Success
+      - name: 🧾 Notify Deployment Success
         uses: actions/github-script@v6
         if: success()
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
+            const { Octokit } = require("@octokit/rest");
+            const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN });
+
             const issueTitle = '✅ Deployment Successful';
-            const issueBody = `The deployment to production was successful.\n\n- **Commit:** ${process.env.GITHUB_SHA}\n- **Deployed by:** @${process.env.GITHUB_ACTOR}\n- **Timestamp:** ${new Date().toISOString()}`;
-            await github.issues.create({
+            const issueBody = `The deployment to production was successful.
+
+            - **Commit:** ${process.env.GITHUB_SHA}
+            - **Deployed by:** @${process.env.GITHUB_ACTOR}
+            - **Timestamp:** ${new Date().toISOString()}`;
+
+            await octokit.issues.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
               title: issueTitle,
               body: issueBody,
             });
+
+            console.log("✅ GitHub Issue Created: Deployment Success");

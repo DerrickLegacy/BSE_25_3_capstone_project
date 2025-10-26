@@ -146,9 +146,6 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const { Octokit } = require("@octokit/rest");
-            const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN });
-
             const issueTitle = '✅ Deployment Successful';
             const issueBody = `The deployment to production was successful.
 
@@ -156,7 +153,7 @@ jobs:
             - **Deployed by:** @${process.env.GITHUB_ACTOR}
             - **Timestamp:** ${new Date().toISOString()}`;
 
-            await octokit.issues.create({
+            await github.rest.issues.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
               title: issueTitle,
@@ -164,3 +161,6 @@ jobs:
             });
 
             console.log("✅ GitHub Issue Created: Deployment Success");
+        env:
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_ACTOR: ${{ github.actor }}
